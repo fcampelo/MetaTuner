@@ -41,6 +41,14 @@ implementation of package \code{SobolSequence}. Needs no additional parameters.
 }
 }
 
+\examples{
+myconfs <- GenerateInitialSample(m0 = 20, dim = 2,
+                                 method = "lhs") # Using LHS
+plot(myconfs[, 1], myconfs[, 2], type = "p", pch = 20)
+myconfs <- GenerateInitialSample(m0 = 50, dim = 5,
+                                 method = "sobol") # Using Sobol
+pairs(as.data.frame(myconfs))
+}
 \author{
 Felipe Campelo (\email{fcampelo@ufmg.br}),
 Athila Trindade (\email{rochaathila@gmail.com})

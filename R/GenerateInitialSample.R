@@ -22,8 +22,14 @@
 #' @param ... further parameters to be passed down to the specific methods (see
 #'            section `Methods` for details).
 #'
-#' @return a matrix where each line represents one configuration sampled from
-#' the space of possible configurations.
+#' @return a list vector where each object is a configuration list,
+#' containing the following fields:
+#'     - `config`, a named list containing parameter values
+#'     - `Yij`, a data frame with two columns: `instance.ID` and `y`
+#'        (the performance value of the configuration on the instance).
+#'        This data frame is generated empty.
+#'     - `perf`, a numeric scalar containing the summary performance value
+#'       of the configuration
 #'
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
@@ -32,11 +38,12 @@
 #'
 #' @examples
 #' myconfs <- GenerateInitialSample(m0 = 20, dim = 2,
+#'                                  method = "sobol") # Using LDSP
+#' myconfs <- GenerateInitialSample(m0 = 100, dim = 5,
 #'                                  method = "lhs") # Using LHS
-#' plot(myconfs[, 1], myconfs[, 2], type = "p", pch = 20)
-#' myconfs <- GenerateInitialSample(m0 = 50, dim = 5,
-#'                                  method = "sobol") # Using Sobol
-#' pairs(as.data.frame(myconfs))
+#' configs <- as.data.frame(t(sapply(myconfs,
+#'                                   function(x){x$config})))
+#' pairs(configs, pch = 20)
 
 GenerateInitialSample <- function(m0,
                                   dim,
@@ -56,5 +63,13 @@ GenerateInitialSample <- function(m0,
     mysample <- SobolSequence::sobolSequence.points(dimR = dim, count = m0)
   }
 
-  return(mysample)
+  outlist <- apply(X      = mysample,
+                   MARGIN = 1,
+                   FUN    = function(x){
+                     list(config = x,
+                          Yij    = data.frame(instance.ID = character(),
+                                              y           = numeric()),
+                          perf   = NA)})
+
+  return(outlist)
 }
