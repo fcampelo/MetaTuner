@@ -27,8 +27,10 @@
 #' @export
 
 EvaluateConfigurations <- function(instance.list,
-                            N,
-                            sampled.instances = numeric(0)){
+                                   instances.to.eval = "all",
+                                   config.list,
+                                   configs.to.eval = "all",
+                                   target.runner){
 
   # Error checking
   assertthat::assert_that(is.list(instance.list),

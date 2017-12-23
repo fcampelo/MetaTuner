@@ -31,7 +31,7 @@ SampleInstances <- function(instance.list,
                           all(sampled.instances <= length(instance.list)))
 
   allindx <- seq_along(instance.list)
-  allindx <- allindx[-sampled.instances]
+  if(length(sampled.instances) != 0) allindx <- allindx[-sampled.instances]
 
   N <- min(N, length(allindx))
 
