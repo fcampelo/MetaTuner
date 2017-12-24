@@ -68,7 +68,8 @@ GenerateInitialSample <- function(m0,
                    FUN    = function(x){
                      list(config = x,
                           Yij    = data.frame(instance.ID = character(),
-                                              y           = numeric()),
+                                              y           = numeric(),
+                                              stringsAsFactors = FALSE),
                           perf   = NA)})
 
   return(outlist)

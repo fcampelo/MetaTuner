@@ -3,8 +3,8 @@ require(ExpDE)
 
 # ======================================================================
 # Simple input parameters
-initial.sampling <- "lhs"
-m0 <- 20
+initial.sampling.method <- "lhs"
+m0 <- 10
 N0 <- 5
 
 # ======================================================================
@@ -37,7 +37,7 @@ for (i in 1:length(tuning.instances)){
 
 # ======================================================================
 # Build target runner
-target.runner <- function(instance, params){
+myalgo <- function(instance, params){
   D        <- length(instance$xmin)
   popsize  <- 10 * D
   probpars <- list(name = instance$FUN,

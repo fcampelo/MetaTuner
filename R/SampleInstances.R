@@ -27,7 +27,7 @@ SampleInstances <- function(instance.list,
                           length(instance.list) > 0,
                           assertthat::is.count(N),
                           is.numeric(sampled.instances),
-                          all(lapply(sampled.instances, assertthat::is.count)),
+                          all(sapply(sampled.instances, assertthat::is.count)),
                           all(sampled.instances <= length(instance.list)))
 
   allindx <- seq_along(instance.list)
