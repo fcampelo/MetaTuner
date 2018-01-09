@@ -3,8 +3,9 @@ Type: Package
 Title: MetaTuner: Metaheuristics Tuner
 Description: Functions for tuning algorithm parameters by sequential 
              optimization of robust models
-Date: 2017-12-22
-Version: 0.1.0.9005
+Date: 2017-01-09
+Version: 0.1.0.9011
+Depends: R (>= 3.4.3)
 Imports: hqreg, 
          MASS,
          quantreg,
@@ -24,7 +25,6 @@ Authors@R: c(person("Felipe", "Campelo", email = "fcampelo@ufmg.br",
                 person("Athila", "Trindade", email = "rochaathila@gmail.com ",
                     role = c("aut", "cre")))
 License: GPL-2
-Depends: R (>= 3.4.2)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1

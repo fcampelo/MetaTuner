@@ -8,13 +8,20 @@
 #' @param tuning.instances list containing all available tuning instances.
 #' @param instances.to.eval vector containing the indices of the instances to
 #'                          be used.
-#' @param config.list list containing all configurations sampled.
+#' @param config.list list vector containing field `A` (list of all
+#'                    configurations sampled so far + additional info) as well
+#'                    as other information regarding the performance of all
+#'                    configurations tested and the process of MetaTuner.
 #' @param configs.to.eval vector containing the indices of the configurations to
 #'                          be evaluated on the instances listed in
 #'                          `instances.to.eval`.
 #' @param algo.runner name of function used for evaluating the configurations.
 #'                      See Section `Algorithm Runner` of [metatuner()]
 #'                      documentation.
+#' @param summary.function name of function for aggregating the (scaled)
+#' output values of `algo.runner` into a single performance value. Usual
+#' functions include `mean` and `median`, but in principle any summarizing
+#' function can be used.
 #'
 #' @return Updated `config.list` containing performance evaluation of
 #' `configs.to.eval` on `instances.to.eval`, as well as `nruns`, the number of
@@ -30,7 +37,8 @@ EvaluateConfigurations <- function(tuning.instances,
                                    instances.to.eval = "all",
                                    config.list,
                                    configs.to.eval = "all",
-                                   algo.runner){
+                                   algo.runner,
+                                   summary.function = "median"){
 
   # Error checking
   assertthat::assert_that(is.list(tuning.instances),
@@ -39,10 +47,12 @@ EvaluateConfigurations <- function(tuning.instances,
                             instances.to.eval == "all",
                           is.numeric(configs.to.eval) ||
                             configs.to.eval == "all",
-                          is.character(algo.runner))
+                          is.character(algo.runner), length(algo.runner) == 1,
+                          is.character(summary.function),
+                          length(summary.function) == 1)
 
   if(identical(configs.to.eval, "all")) {
-    configs.to.eval <- seq_along(config.list)
+    configs.to.eval <- seq_along(config.list$A)
   }
   if(identical(instances.to.eval, "all")) {
     instances.to.eval <- seq_along(tuning.instances)
@@ -52,43 +62,68 @@ EvaluateConfigurations <- function(tuning.instances,
                           all(instances.to.eval <= length(tuning.instances)),
                           all(instances.to.eval == round(instances.to.eval)),
                           all(configs.to.eval > 0),
-                          all(configs.to.eval <= length(config.list)),
+                          all(configs.to.eval <= length(config.list$A)),
                           all(configs.to.eval == round(configs.to.eval)))
 
 
   # ==========
-  nruns <- 0
+  npars <- length(config.list$A[[1]]$config)
+  nruns <- config.list$nruns
   Yij.all <- matrix(as.numeric(NA),
-                    ncol = length(config.list),
+                    ncol = length(config.list$A),
                     nrow = length(tuning.instances))
-  colnames(Yij.all) <- paste0("theta", seq_along(config.list))
+  colnames(Yij.all) <- paste0("theta", seq_along(config.list$A))
   rownames(Yij.all) <- paste0("gamma", seq_along(tuning.instances))
 
+  config.perf <- as.data.frame(t(sapply(config.list$A,
+                                        function(x){x$config})))
+  names(config.perf)      <- paste0("p", 1:npars)
+
   for (i in seq_along(configs.to.eval)){
-    instances.seen <- config.list[[configs.to.eval[i]]]$Yij$instance.ID
+    instances.seen <- config.list$A[[configs.to.eval[i]]]$Yij$instance.ID
     for (j in seq_along(instances.to.eval)){
       if(!(instances.to.eval[j] %in% instances.seen)){
         yij <- do.call(algo.runner,
                 args = list(instance = tuning.instances[[instances.to.eval[j]]],
-                            params   = config.list[[configs.to.eval[i]]]))
-        config.list[[configs.to.eval[i]]]$Yij <-
-          rbind(config.list[[configs.to.eval[i]]]$Yij,
+                            params   = config.list$A[[configs.to.eval[i]]]))
+        config.list$A[[configs.to.eval[i]]]$Yij <-
+          rbind(config.list$A[[configs.to.eval[i]]]$Yij,
                 data.frame(instance.ID = instances.to.eval[j],
                            y           = yij))
         Yij.all[instances.to.eval[j], configs.to.eval[i]] <- yij
         nruns <- nruns + 1
       } else {
-        indx <- which(config.list[[configs.to.eval[i]]]$Yij$instance.ID ==
+        indx <- which(config.list$A[[configs.to.eval[i]]]$Yij$instance.ID ==
                         instances.to.eval[j])
         Yij.all[instances.to.eval[j], configs.to.eval[i]] <-
-          config.list[[configs.to.eval[i]]]$Yij[indx, 2]
+          config.list$A[[configs.to.eval[i]]]$Yij[indx, 2]
       }
     }
   }
 
+  Yij.vals <- Yij.all[which(rowSums(!is.na(Yij.all)) != 0), ]
+  instmins <- matrix(apply(Yij.vals, MARGIN = 1, FUN = min, na.rm = TRUE),
+                     nrow = nrow(Yij.vals),
+                     ncol = ncol(Yij.vals),
+                     byrow = FALSE)
+  instmaxs <- matrix(apply(Yij.vals, MARGIN = 1, FUN = max, na.rm = TRUE),
+                     nrow = nrow(Yij.vals),
+                     ncol = ncol(Yij.vals),
+                     byrow = FALSE)
+  Yij.norm <- (Yij.vals - instmins) / (instmaxs - instmins)
+
+  config.perf <- cbind(config.perf,
+                       perf = apply(X = Yij.norm,
+                                    MARGIN = 2,
+                                    FUN = summary.function))
+  for (i in seq_along(config.list$A)){
+    config.list$A[[i]]$perf <- config.perf$perf[i]
+  }
+
   # Return output
-  outlist <- list(config.list = config.list,
-                  Yij.all     = Yij.all,
-                  nruns       = nruns)
-  return(outlist)
+  config.list$Yij.all     <- Yij.all
+  config.list$nruns       <- nruns
+  config.list$Yij.norm    <- Yij.norm
+  config.list$config.perf <- config.perf
+  return(config.list)
 }

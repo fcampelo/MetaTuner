@@ -3,3 +3,4 @@
 export(EvaluateConfigurations)
 export(GenerateInitialSample)
 export(SampleInstances)
+export(make_vectorized_smoof)

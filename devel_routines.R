@@ -1,11 +1,19 @@
+rm(list = ls())
+
 require(smoof)
 require(ExpDE)
+require(devtools)
+devtools::load_all()
 
 # ======================================================================
 # Simple input parameters
 initial.sampling.method <- "lhs"
+algo.runner <- "myalgo"
 m0 <- 10
 N0 <- 5
+mi <- 5
+Ni <- 1
+summary.function <- "median"
 
 # ======================================================================
 # List of tunable parameters
@@ -55,3 +63,6 @@ myalgo <- function(instance, params){
                probpars = probpars, showpars = showpars)
   return(out$Fbest)
 }
+
+
+

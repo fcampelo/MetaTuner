@@ -19,8 +19,14 @@ section \code{Methods} for details).}
 section \code{Methods} for details).}
 }
 \value{
-a matrix where each line represents one configuration sampled from
-the space of possible configurations.
+a list vector where each object is a configuration list,
+containing the following fields:
+- \code{config}, a named list containing parameter values
+- \code{Yij}, a data frame with two columns: \code{instance.ID} and \code{y}
+(the performance value of the configuration on the instance).
+This data frame is generated empty.
+- \code{perf}, a numeric scalar containing the summary performance value
+of the configuration
 }
 \description{
 Generates an initial sample within the space of configurations using a
@@ -43,11 +49,12 @@ implementation of package \code{SobolSequence}. Needs no additional parameters.
 
 \examples{
 myconfs <- GenerateInitialSample(m0 = 20, dim = 2,
+                                 method = "sobol") # Using LDSP
+myconfs <- GenerateInitialSample(m0 = 100, dim = 5,
                                  method = "lhs") # Using LHS
-plot(myconfs[, 1], myconfs[, 2], type = "p", pch = 20)
-myconfs <- GenerateInitialSample(m0 = 50, dim = 5,
-                                 method = "sobol") # Using Sobol
-pairs(as.data.frame(myconfs))
+configs <- as.data.frame(t(sapply(myconfs,
+                                  function(x){x$config})))
+pairs(configs, pch = 20)
 }
 \author{
 Felipe Campelo (\email{fcampelo@ufmg.br}),

@@ -5,38 +5,44 @@ metatuner <- function(algo.runner,
                       initial.sampling.method,
                       m0, mi,
                       N0, Ni,
-                      stopcrit){
+                      stopcrit,
+                      summary.function){
 
   # Error checking and initial definitions
 
   # ===========
 
-  A <- GenerateInitialSample(m0       = m0,
-                             dim      = nrow(parameters),
-                             method   = initial.sampling.method)
+  config.list <- vector(mode = "list", length = 3)
+  names(config.list) <- c("A", "Yij.all", "nruns")
+  config.list$nruns <- 0
+  config.list$A     <- GenerateInitialSample(m0       = m0,
+                                             dim      = nrow(parameters),
+                                             method   = initial.sampling.method)
 
-  Gamma.A <- SampleInstances(instance.list = tuning.instances,
-                             N = N0)
+  Gamma.A     <- SampleInstances(instance.list = tuning.instances,
+                                 N             = N0)
 
-  A <- EvaluateConfigurations(tuning.instances = tuning.instances,
-                              instances.to.eval = Gamma.A,
-                              config.list = A,
-                              configs.to.eval = "all",
-                              algo.runner = algo.runner)
+  config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
+                                        instances.to.eval = Gamma.A,
+                                        config.list       = config.list,
+                                        configs.to.eval   = "all",
+                                        algo.runner       = algo.runner,
+                                        summary.function  = summary.function)
 
-  elite.list <- seq_along(A)
+  elite.list  <- seq_along(config.list$A)
   while(keep_running(nruns)){
     Gamma.A <- c(Gamma.A,
-                 SampleInstances(instance.list = tuning.instances,
+                 SampleInstances(instance.list     = tuning.instances,
                                  sampled.instances = Gamma.A,
-                                 N = Ni))
-    A <- EvaluateConfigurations(tuning.instances = tuning.instances,
-                                instances.to.eval = Gamma.A,
-                                config.list = A,
-                                configs.to.eval = elite.list,
-                                algo.runner = algo.runner)
-    nruns      <- A$nruns
-    A          <- A$config.list
+                                 N                 = Ni))
+
+    config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
+                                          instances.to.eval = Gamma.A,
+                                          config.list       = config.list,
+                                          configs.to.eval   = elite.list,
+                                          algo.runner       = algo.runner)
+
+    # Enter STAT modeling
 
   }
 

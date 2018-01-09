@@ -4,27 +4,38 @@
 \alias{EvaluateConfigurations}
 \title{Evaluate candidate configurations on sets of instances}
 \usage{
-EvaluateConfigurations(instance.list, N, sampled.instances = numeric(0))
+EvaluateConfigurations(tuning.instances, instances.to.eval = "all",
+  config.list, configs.to.eval = "all", algo.runner,
+  summary.function = "median")
 }
 \arguments{
-\item{instance.list}{list containing all available tuning instances.}
+\item{tuning.instances}{list containing all available tuning instances.}
 
 \item{instances.to.eval}{vector containing the indices of the instances to
 be used.}
 
-\item{config.list}{list containing all configurations sampled.}
+\item{config.list}{list vector containing field \code{A} (list of all
+configurations sampled so far + additional info) as well
+as other information regarding the performance of all
+configurations tested and the process of MetaTuner.}
 
 \item{configs.to.eval}{vector containing the indices of the configurations to
 be evaluated on the instances listed in
 \code{instances.to.eval}.}
 
-\item{target.runner}{name of function used for evaluating the configurations.
-See Section \code{Target Runner} of \code{\link[=metatuner]{metatuner()}}
+\item{algo.runner}{name of function used for evaluating the configurations.
+See Section \code{Algorithm Runner} of \code{\link[=metatuner]{metatuner()}}
 documentation.}
+
+\item{summary.function}{name of function for aggregating the (scaled)
+output values of \code{algo.runner} into a single performance value. Usual
+functions include \code{mean} and \code{median}, but in principle any summarizing
+function can be used.}
 }
 \value{
 Updated \code{config.list} containing performance evaluation of
-\code{configs.to.eval} on \code{instances.to.eval}
+\code{configs.to.eval} on \code{instances.to.eval}, as well as \code{nruns}, the number of
+algorithm runs performed.
 }
 \description{
 Evaluates the candidate configurations listed on \code{configs.to.eval} on the
