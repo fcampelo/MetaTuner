@@ -12,8 +12,8 @@ metatuner <- function(algo.runner,
 
   # ===========
 
-  config.list <- vector(mode = "list", length = 3)
-  names(config.list) <- c("A", "Yij.all", "nruns")
+  config.list <- vector(mode = "list", length = 2)
+  names(config.list) <- c("A", "nruns")
   config.list$nruns <- 0
   config.list$A     <- GenerateInitialSample(m0       = m0,
                                              dim      = nrow(parameters),
@@ -31,18 +31,23 @@ metatuner <- function(algo.runner,
 
   elite.list  <- seq_along(config.list$A)
   while(keep_running(nruns)){
+    # Sample Ni additional instances
     Gamma.A <- c(Gamma.A,
                  SampleInstances(instance.list     = tuning.instances,
                                  sampled.instances = Gamma.A,
                                  N                 = Ni))
 
+    # Evaluate elite configurations on the new instances
     config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
                                           instances.to.eval = Gamma.A,
                                           config.list       = config.list,
                                           configs.to.eval   = elite.list,
                                           algo.runner       = algo.runner)
 
-    # Enter STAT modeling
+    # Build statistical models
+    models <- FitModels(X                = config.list$config.perf,
+                        perturbed.models = mi)
+
 
   }
 

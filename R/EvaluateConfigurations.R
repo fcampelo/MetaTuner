@@ -40,7 +40,7 @@ EvaluateConfigurations <- function(tuning.instances,
                                    algo.runner,
                                    summary.function = "median"){
 
-  # Error checking
+  # ========== Error checking
   assertthat::assert_that(is.list(tuning.instances),
                           length(tuning.instances) > 0,
                           is.numeric(instances.to.eval) ||
@@ -66,37 +66,47 @@ EvaluateConfigurations <- function(tuning.instances,
                           all(configs.to.eval == round(configs.to.eval)))
 
 
-  # ==========
-  npars <- length(config.list$A[[1]]$config)
-  nruns <- config.list$nruns
-  Yij.all <- matrix(as.numeric(NA),
-                    ncol = length(config.list$A),
-                    nrow = length(tuning.instances))
-  colnames(Yij.all) <- paste0("theta", seq_along(config.list$A))
-  rownames(Yij.all) <- paste0("gamma", seq_along(tuning.instances))
+  # ========== Prepare config.list fields
+  npars   <- length(config.list$A[[1]]$config)
+  nruns   <- config.list$nruns
+  if("Yij.all" %in% names(config.list)){
+    Yij.all <- config.list$Yij.all
+    diffcol <- length(config.list$A) - ncol(Yij.all)
+    if (diffcol){
+      Yij.all <- cbind(Yij.all,
+                       matrix(as.numeric(NA),
+                              ncol = diffcol,
+                              nrow = length(tuning.instances)))
+    }
+  } else {
+    Yij.all <- matrix(as.numeric(NA),
+                      ncol = length(config.list$A),
+                      nrow = length(tuning.instances))
+  }
+  colnames(Yij.all) <- paste0("config", seq_along(config.list$A))
+  rownames(Yij.all) <- paste0("instance", seq_along(tuning.instances))
 
   config.perf <- as.data.frame(t(sapply(config.list$A,
                                         function(x){x$config})))
-  names(config.perf)      <- paste0("p", 1:npars)
+  names(config.perf) <- paste0("param", 1:npars)
 
-  for (i in seq_along(configs.to.eval)){
-    instances.seen <- config.list$A[[configs.to.eval[i]]]$Yij$instance.ID
-    for (j in seq_along(instances.to.eval)){
-      if(!(instances.to.eval[j] %in% instances.seen)){
-        yij <- do.call(algo.runner,
-                args = list(instance = tuning.instances[[instances.to.eval[j]]],
-                            params   = config.list$A[[configs.to.eval[i]]]))
-        config.list$A[[configs.to.eval[i]]]$Yij <-
-          rbind(config.list$A[[configs.to.eval[i]]]$Yij,
-                data.frame(instance.ID = instances.to.eval[j],
-                           y           = yij))
-        Yij.all[instances.to.eval[j], configs.to.eval[i]] <- yij
-        nruns <- nruns + 1
-      } else {
-        indx <- which(config.list$A[[configs.to.eval[i]]]$Yij$instance.ID ==
-                        instances.to.eval[j])
-        Yij.all[instances.to.eval[j], configs.to.eval[i]] <-
-          config.list$A[[configs.to.eval[i]]]$Yij[indx, 2]
+
+  # ========== Evaluate config/instance pairs that need to be evaluated
+  for (i in seq(config.list$A)){
+    if (i %in% configs.to.eval){
+      instances.seen <- config.list$A[[i]]$Yij$instance.ID
+      for (j in seq_along(instances.to.eval)){
+        if(!(instances.to.eval[j] %in% instances.seen)){
+          yij <- do.call(algo.runner,
+                         args = list(instance = tuning.instances[[instances.to.eval[j]]],
+                                     params   = config.list$A[[i]]))
+          config.list$A[[i]]$Yij <-
+            rbind(config.list$A[[i]]$Yij,
+                  data.frame(instance.ID = instances.to.eval[j],
+                             y           = yij))
+          Yij.all[instances.to.eval[j], i] <- yij
+          nruns <- nruns + 1
+        }
       }
     }
   }
@@ -115,7 +125,8 @@ EvaluateConfigurations <- function(tuning.instances,
   config.perf <- cbind(config.perf,
                        perf = apply(X = Yij.norm,
                                     MARGIN = 2,
-                                    FUN = summary.function))
+                                    FUN = summary.function,
+                                    na.rm = TRUE))
   for (i in seq_along(config.list$A)){
     config.list$A[[i]]$perf <- config.perf$perf[i]
   }
