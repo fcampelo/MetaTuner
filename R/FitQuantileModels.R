@@ -13,23 +13,23 @@
 #' @export
 
 FitQuantileModels <- function(X,
-                            perturbed.models,
+                            Nmodels,
                             model.order){
 
   # Fit "original" model
   myformula <- paste0("perf ~ .^", model.order)
   mymodel   <- quantreg::rq(as.formula(myformula), data = X)
-  mycoefs   <- summary(mymodel)$coefficients
+  mycoefs   <- quantreg::summary.rq(mymodel)$coefficients
 
 
   # Generate perturbed models
-  all.models        <- vector(mode = "list", length = perturbed.models + 1)
+  all.models        <- vector(mode = "list", length = Nmodels)
   all.models[[1]]   <- mymodel
   names(all.models) <- c("original",
                          paste0("perturbed",
-                                seq(perturbed.models)))
+                                seq(Nmodels - 1)))
 
-  for (i in (seq(perturbed.models) + 1)){
+  for (i in 2:Nmodels){
     newmodel      <- mymodel
     newcoefs      <- mycoefs
     coefnoise     <- (-1 + 2 * runif(nrow(newcoefs))) * mycoefs[, 2]

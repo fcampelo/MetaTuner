@@ -4,12 +4,12 @@
 \alias{FitQuantileModels}
 \title{Fit quantile regression models}
 \usage{
-FitQuantileModels(X, perturbed.models, model.order)
+FitQuantileModels(X, Nmodels, model.order)
 }
 \arguments{
 \item{X}{data frame containing the performance data}
 
-\item{perturbed.models}{number of perturbed models to generate}
+\item{Nmodels}{number of models to fit}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
 }

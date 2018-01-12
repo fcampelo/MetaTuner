@@ -22,6 +22,8 @@
 #' output values of `algo.runner` into a single performance value. Usual
 #' functions include `mean` and `median`, but in principle any summarizing
 #' function can be used.
+#' @param parameters data frame containing the parameter names and bound
+#' constraints
 #'
 #' @return Updated `config.list` containing performance evaluation of
 #' `configs.to.eval` on `instances.to.eval`, as well as `nruns`, the number of
@@ -38,7 +40,8 @@ EvaluateConfigurations <- function(tuning.instances,
                                    config.list,
                                    configs.to.eval = "all",
                                    algo.runner,
-                                   summary.function = "median"){
+                                   summary.function = "median",
+                                   parameters){
 
   # ========== Error checking
   assertthat::assert_that(is.list(tuning.instances),
@@ -69,6 +72,8 @@ EvaluateConfigurations <- function(tuning.instances,
   # ========== Prepare config.list fields
   npars   <- length(config.list$A[[1]]$config)
   nruns   <- config.list$nruns
+
+  # Matrix of all performances
   if("Yij.all" %in% names(config.list)){
     Yij.all <- config.list$Yij.all
     diffcol <- length(config.list$A) - ncol(Yij.all)
@@ -86,31 +91,51 @@ EvaluateConfigurations <- function(tuning.instances,
   colnames(Yij.all) <- paste0("config", seq_along(config.list$A))
   rownames(Yij.all) <- paste0("instance", seq_along(tuning.instances))
 
-  config.perf <- as.data.frame(t(sapply(config.list$A,
-                                        function(x){x$config})))
-  names(config.perf) <- paste0("param", 1:npars)
+  # Data frame of configuration performances (with normalized parameters)
+  config.perf <-
+    as.data.frame(t(sapply(config.list$A,
+                           function(x, params){x$config},
+                           params = parameters)))
+  names(config.perf) <- parameters$name
 
 
   # ========== Evaluate config/instance pairs that need to be evaluated
+  # PARALLELIZE HERE
+  # VVVVVVVVVVVVVVVV
   for (i in seq(config.list$A)){
     if (i %in% configs.to.eval){
+      # ^^ should the config be evaluated?
+
       instances.seen <- config.list$A[[i]]$Yij$instance.ID
       for (j in seq_along(instances.to.eval)){
         if(!(instances.to.eval[j] %in% instances.seen)){
+          # ^^ hasn't the instance been evaluated already?
+
+          # denormalize configuration
+          myconf <- config.list$A[[i]]
+          myconf$config <- parameters$minx +
+            myconf$config * (parameters$maxx - parameters$minx)
+
+          # call algorithm runner
           yij <- do.call(algo.runner,
                          args = list(instance = tuning.instances[[instances.to.eval[j]]],
-                                     params   = config.list$A[[i]]))
+                                     params   = myconf))
+
+          # Store result in config.list
           config.list$A[[i]]$Yij <-
             rbind(config.list$A[[i]]$Yij,
                   data.frame(instance.ID = instances.to.eval[j],
                              y           = yij))
           Yij.all[instances.to.eval[j], i] <- yij
+
+          # update run counter
           nruns <- nruns + 1
         }
       }
     }
   }
 
+  # Calculate normalized performances
   Yij.vals <- Yij.all[which(rowSums(!is.na(Yij.all)) != 0), ]
   instmins <- matrix(apply(Yij.vals, MARGIN = 1, FUN = min, na.rm = TRUE),
                      nrow = nrow(Yij.vals),
@@ -122,11 +147,14 @@ EvaluateConfigurations <- function(tuning.instances,
                      byrow = FALSE)
   Yij.norm <- (Yij.vals - instmins) / (instmaxs - instmins)
 
+  # Update data frame of configuration performances
   config.perf <- cbind(config.perf,
                        perf = apply(X = Yij.norm,
                                     MARGIN = 2,
                                     FUN = summary.function,
                                     na.rm = TRUE))
+
+  # Give each config its performance value
   for (i in seq_along(config.list$A)){
     config.list$A[[i]]$perf <- config.perf$perf[i]
   }

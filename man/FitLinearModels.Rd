@@ -4,12 +4,12 @@
 \alias{FitLinearModels}
 \title{Fit linear regression models}
 \usage{
-FitLinearModels(X, perturbed.models, model.order)
+FitLinearModels(X, Nmodels, model.order)
 }
 \arguments{
 \item{X}{data frame containing the performance data}
 
-\item{perturbed.models}{number of perturbed models to generate}
+\item{Nmodels}{number of models to fit}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
 }

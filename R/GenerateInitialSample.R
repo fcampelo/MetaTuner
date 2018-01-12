@@ -19,6 +19,7 @@
 #'            being tuned)
 #' @param method type of method to be used in the generation of the sample (see
 #'               section `Methods` for details).
+#' @param ndigits number of significant digits to use for each parameter.
 #' @param ... further parameters to be passed down to the specific methods (see
 #'            section `Methods` for details).
 #'
@@ -48,12 +49,18 @@
 GenerateInitialSample <- function(m0,
                                   dim,
                                   method = c("lhs", "sobol"),
+                                  ndigits = 4,
                                   ...){
+
+  if(length(ndigits) == 1) ndigits <- rep(ndigits, times = dim)
 
   # Error checking
   method <- match.arg(method, c("lhs", "sobol"))
   assertthat::assert_that(assertthat::is.count(m0),
-                          assertthat::is.count(dim))
+                          assertthat::is.count(dim),
+                          is.numeric(ndigits),
+                          all(ndigits > 0),
+                          all(ndigits == round(ndigits)))
 
   if (method == "lhs"){
     mysample <- lhs::randomLHS(n = m0, k = dim)
@@ -61,6 +68,10 @@ GenerateInitialSample <- function(m0,
 
   if (method == "sobol"){
     mysample <- SobolSequence::sobolSequence.points(dimR = dim, count = m0)
+  }
+
+  for (j in 1:ncol(mysample)){
+    mysample[, j] <- signif(mysample[, j], digits = ndigits[j])
   }
 
   outlist <- apply(X      = mysample,

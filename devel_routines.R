@@ -11,11 +11,15 @@ initial.sampling.method <- "lhs"
 algo.runner <- "myalgo"
 m0 <- 10
 N0 <- 5
-mi <- 5
+mi <- 3
 Ni <- 1
+elite.confs <- 5
 summary.function <- "median"
 model.order <- 2
-model.type <- "linear"
+model.type <- "quantile"
+optimization.method = "Nelder-Mead"
+budget <- 200
+parameter.resolution <- c(3, 4)
 
 # ======================================================================
 # List of tunable parameters
