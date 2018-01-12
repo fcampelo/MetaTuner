@@ -30,19 +30,21 @@ FitModels <- function(X,
   assertthat::assert_that(is.data.frame(X),
                           all(sapply(X, is.numeric)),
                           assertthat::is.count(perturbed.models),
-                          assertthat::is.count(model.order),
-                          )
+                          assertthat::is.count(model.order))
 
 
   # ========== Fit model (original)
   if (type == "linear"){
-    models <- FitLinearModel(X,
-                             perturbed.models,
-                             model.order)
+    models <- FitLinearModels(X = X,
+                              perturbed.models = perturbed.models,
+                              model.order = model.order)
   } else if (type == "quantile"){
-    models <- FitQuantileModel(X,
-                             perturbed.models,
-                             model.order)
+    models <- FitQuantileModel(X = X,
+                               perturbed.models = perturbed.models,
+                               model.order = model.order)
   }
+
+  # ========== Return fitted model + disturbed models
+  return(models)
 
 }

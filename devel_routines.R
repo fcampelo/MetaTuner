@@ -14,6 +14,8 @@ N0 <- 5
 mi <- 5
 Ni <- 1
 summary.function <- "median"
+model.order <- 2
+model.type <- "linear"
 
 # ======================================================================
 # List of tunable parameters

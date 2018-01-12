@@ -46,7 +46,11 @@ metatuner <- function(algo.runner,
 
     # Build statistical models
     models <- FitModels(X                = config.list$config.perf,
-                        perturbed.models = mi)
+                        perturbed.models = mi,
+                        model.order      = model.order,
+                        type             = model.type)
+
+    A.prime
 
 
   }
