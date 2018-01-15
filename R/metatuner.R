@@ -122,7 +122,7 @@ metatuner <- function(parameters,
 
   # =========== Input standardization
   initial.sampling <- match.arg(initial.sampling, c("lhs", "sobol"))
-  model.type <- match.arg(model.type, c("linear", "quantile"))
+  model.type       <- match.arg(model.type, c("linear", "quantile"))
 
   if(length(ndigits) == 1) {
     ndigits <- rep(ndigits, times = nrow(parameters))
@@ -132,7 +132,6 @@ metatuner <- function(parameters,
   # =========== Error checking
   SanityCheck(as.list(environment()))
 
-
   # =========== Prepare config.list structure
   config.list        <- vector(mode = "list", length = 2)
   names(config.list) <- c("A", "nruns")
@@ -141,7 +140,7 @@ metatuner <- function(parameters,
   # =========== Generate initial sample of configurations
   config.list$A <- GenerateInitialSample(m0       = m0,
                                          dim      = nrow(parameters),
-                                         method   = initial.sampling.method,
+                                         method   = initial.sampling,
                                          ndigits  = ndigits)
 
   # =========== Sample instances
@@ -199,16 +198,18 @@ metatuner <- function(parameters,
     newconfs <- FilterRepeatedConfigurations(newconfs, config.list)
 
     # Add new configurations to archive and evaluate on all instances so far.
-    toEval        <- length(config.list$A) + seq(length(newconfs))
-    config.list$A <- c(config.list$A, newconfs)
+    if (length(newconfs) > 0) {
+      toEval        <- length(config.list$A) + seq(length(newconfs))
+      config.list$A <- c(config.list$A, newconfs)
 
-    cat("\n-----\nEvaluating new candidate configurations")
-    config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
-                                          instances.to.eval = Gamma.A,
-                                          config.list       = config.list,
-                                          configs.to.eval   = toEval,
-                                          algo.runner       = algo.runner,
-                                          parameters        = parameters)
+      cat("\n-----\nEvaluating new candidate configurations")
+      config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
+                                            instances.to.eval = Gamma.A,
+                                            config.list       = config.list,
+                                            configs.to.eval   = toEval,
+                                            algo.runner       = algo.runner,
+                                            parameters        = parameters)
+    } else cat("\n-----\nNo new candidates to evaluate")
 
     # Determine elite configurations
     elite.list <- order(config.list$config.perf$perf)[1:elite.confs]

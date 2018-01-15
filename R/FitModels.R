@@ -29,6 +29,7 @@ FitModels <- function(X,
   ## Error checking done in the calling routine
   ## ==============
 
+  # TODO: change model arguments to do.call(polym, c(config.list$config.perf[,1:2], degree=3))
 
   # ========== Fit model (original)
   if (type == "linear"){

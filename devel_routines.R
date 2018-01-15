@@ -7,7 +7,7 @@ devtools::load_all()
 
 # ======================================================================
 # Simple input parameters
-initial.sampling.method <- "lhs"
+initial.sampling <- "lhs"
 algo.runner <- "myalgo"
 m0 <- 10
 N0 <- 5
@@ -19,7 +19,7 @@ model.order <- 2
 model.type <- "quantile"
 optimization.method = "Nelder-Mead"
 budget <- 200
-parameter.resolution <- c(3, 4)
+ndigits <- c(3, 4)
 
 # ======================================================================
 # List of tunable parameters

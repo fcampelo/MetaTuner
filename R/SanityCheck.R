@@ -47,12 +47,10 @@ SanityCheck <- function(myenv){
                             length(algo.runner) == 1,
                             is.character(initial.sampling),
                             length(initial.sampling) == 1,
-                            initial.sampling %in% c("lhs", "sobol"),
                             is.character(summary.function),
                             length(summary.function) == 1,
                             is.character(model.type),
                             length(model.type) == 1,
-                            model.type %in% c("linear", "quantile"),
                             is.character(optimization.method),
                             length(optimization.method) == 1)
 
