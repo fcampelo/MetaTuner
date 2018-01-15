@@ -35,8 +35,6 @@
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
-#' @export
-#'
 #' @examples
 #' myconfs <- GenerateInitialSample(m0 = 20, dim = 2,
 #'                                  method = "sobol") # Using LDSP

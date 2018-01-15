@@ -16,7 +16,6 @@
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
-#' @export
 
 SampleInstances <- function(instance.list,
                             N,

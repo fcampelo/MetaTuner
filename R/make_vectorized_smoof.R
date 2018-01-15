@@ -17,6 +17,7 @@
 #' }
 #'
 #' @export
+
 make_vectorized_smoof <- function(prob.name, ...){
 
   if(!("smoof" %in% rownames(utils::installed.packages()))){
@@ -33,10 +34,15 @@ make_vectorized_smoof <- function(prob.name, ...){
                                              ns = "smoof"),
                      args = my.args)
     myfun2 <- function(X, ...){
-      as.vector(apply(X,
-              MARGIN = 1,
-              FUN = myfun))
+      if(is.matrix(X)){
+        as.vector(apply(X,
+                        MARGIN = 1,
+                        FUN = myfun))
+      } else{
+        myfun(X)
+      }
     }
+
     return(myfun2)
   }
 }

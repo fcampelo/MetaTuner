@@ -33,7 +33,6 @@
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
-#' @export
 
 EvaluateConfigurations <- function(tuning.instances,
                                    instances.to.eval = "all",

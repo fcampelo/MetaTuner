@@ -18,7 +18,6 @@
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
-#' @export
 
 FitModels <- function(X,
                       Nmodels,

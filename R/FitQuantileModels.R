@@ -10,7 +10,6 @@
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
-#' @export
 
 FitQuantileModels <- function(X,
                             Nmodels,

@@ -9,7 +9,6 @@
 #'
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'
-#' @export
 
 FilterRepeatedConfigurations <- function(newconfs,
                                          config.list){
