@@ -9,7 +9,8 @@ FitLinearModels(X, Nmodels, model.order)
 \arguments{
 \item{X}{data frame containing the performance data}
 
-\item{Nmodels}{number of models to fit}
+\item{Nmodels}{number of models to generate (1 original plus \code{Nmodels - 1}
+perturbations)}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
 }

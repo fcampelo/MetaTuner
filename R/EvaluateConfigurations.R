@@ -100,7 +100,7 @@ EvaluateConfigurations <- function(tuning.instances,
 
 
   # ========== Evaluate config/instance pairs that need to be evaluated
-  # PARALLELIZE HERE
+  # PARALELL-IZE HERE
   # VVVVVVVVVVVVVVVV
   for (i in seq(config.list$A)){
     if (i %in% configs.to.eval){

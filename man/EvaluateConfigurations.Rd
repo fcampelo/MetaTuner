@@ -6,7 +6,7 @@
 \usage{
 EvaluateConfigurations(tuning.instances, instances.to.eval = "all",
   config.list, configs.to.eval = "all", algo.runner,
-  summary.function = "median")
+  summary.function = "median", parameters)
 }
 \arguments{
 \item{tuning.instances}{list containing all available tuning instances.}
@@ -31,6 +31,9 @@ documentation.}
 output values of \code{algo.runner} into a single performance value. Usual
 functions include \code{mean} and \code{median}, but in principle any summarizing
 function can be used.}
+
+\item{parameters}{data frame containing the parameter names and bound
+constraints}
 }
 \value{
 Updated \code{config.list} containing performance evaluation of

@@ -64,7 +64,7 @@ OptimizeModels <- function(parameters,
 
   # ========== Optimize (minimize) models
   cat("\nOptimizing Models: ")
-  # PARALLELIZE HERE
+  # PARALELL-IZE HERE
   # VVVVVVVVVVVVVVVV
     for (i in seq(models)){
     # Initial point for optimization (random, feasible)
@@ -84,7 +84,7 @@ OptimizeModels <- function(parameters,
 
 
   for (j in 1:ncol(mysample)){
-    mysample[, j] <- signif(mysample[, j], digits = ndigits[j])
+    mysample[, j] <- round(mysample[, j], digits = ndigits[j])
   }
 
   # ========== Return new configurations

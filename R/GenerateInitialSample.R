@@ -19,7 +19,7 @@
 #'            being tuned)
 #' @param method type of method to be used in the generation of the sample (see
 #'               section `Methods` for details).
-#' @param ndigits number of significant digits to use for each parameter.
+#' @param ndigits number of decimal places to use for each parameter.
 #' @param ... further parameters to be passed down to the specific methods (see
 #'            section `Methods` for details).
 #'
@@ -71,7 +71,7 @@ GenerateInitialSample <- function(m0,
   }
 
   for (j in 1:ncol(mysample)){
-    mysample[, j] <- signif(mysample[, j], digits = ndigits[j])
+    mysample[, j] <- round(mysample[, j], digits = ndigits[j])
   }
 
   outlist <- apply(X      = mysample,

@@ -4,7 +4,7 @@
 \alias{GenerateInitialSample}
 \title{Generates the initial sampling of the space of configurations}
 \usage{
-GenerateInitialSample(m0, dim, method = c("lhs", "sobol"), ...)
+GenerateInitialSample(m0, dim, method = c("lhs", "sobol"), ndigits = 4, ...)
 }
 \arguments{
 \item{m0}{number of points to be generated}
@@ -14,6 +14,8 @@ being tuned)}
 
 \item{method}{type of method to be used in the generation of the sample (see
 section \code{Methods} for details).}
+
+\item{ndigits}{number of decimal places to use for each parameter.}
 
 \item{...}{further parameters to be passed down to the specific methods (see
 section \code{Methods} for details).}

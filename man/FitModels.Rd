@@ -4,13 +4,13 @@
 \alias{FitModels}
 \title{Fit regression model to performance data}
 \usage{
-FitModels(X, perturbed.models, model.order = 2, type = c("linear",
-  "quantile"), ...)
+FitModels(X, Nmodels, model.order = 2, type = c("linear", "quantile"), ...)
 }
 \arguments{
 \item{X}{data frame containing the performance data}
 
-\item{perturbed.models}{number of perturbed models to generate}
+\item{Nmodels}{number of models to generate (1 original plus \code{Nmodels - 1}
+perturbations)}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
 

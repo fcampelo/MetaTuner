@@ -8,7 +8,7 @@ metatuner <- function(algo.runner,
                       stopcrit,
                       summary.function,
                       budget,
-                      parameter.resolution = 4){
+                      parameter.resolution = 3){
 
   # =========== Error checking and initial definitions
   if(length(parameter.resolution) == 1) {
@@ -82,19 +82,20 @@ metatuner <- function(algo.runner,
                                optimization.method = optimization.method,
                                ndigits             = parameter.resolution)
 
-    # Remove redundant configurations
-    newconfs <- FilterRepeatedConfs(newconfs, config.list) # <- to implement
+    # Remove redundant configurations and add new ones to the archive
+    newconfs <- FilterRepeatedConfigurations(newconfs, config.list)
 
     # Add new configurations to archive and evaluate on all instances so far.
     toEval        <- length(config.list$A) + seq(length(newconfs))
     config.list$A <- c(config.list$A, newconfs)
+
     cat("\n-----\nEvaluating new candidate configurations")
-    config.list   <- EvaluateConfigurations(tuning.instances  = tuning.instances,
-                                            instances.to.eval = Gamma.A,
-                                            config.list       = config.list,
-                                            configs.to.eval   = toEval,
-                                            algo.runner       = algo.runner,
-                                            parameters        = parameters)
+    config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
+                                          instances.to.eval = Gamma.A,
+                                          config.list       = config.list,
+                                          configs.to.eval   = toEval,
+                                          algo.runner       = algo.runner,
+                                          parameters        = parameters)
 
     # Determine elite configurations
     elite.list <- order(config.list$config.perf$perf)[1:elite.confs]
@@ -107,6 +108,7 @@ metatuner <- function(algo.runner,
   }
 
   # =========== Prepare return structures
+  # don't forget config denormalization!
 
   # =========== Return output
 
