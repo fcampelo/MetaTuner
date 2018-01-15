@@ -18,15 +18,9 @@ OptimizeModels <- function(parameters,
                            optimization.method = "Nelder-Mead",
                            ndigits){
 
-  # ========== Error checking
-  if(length(ndigits) == 1) ndigits <- rep(ndigits, times = nrow(parameters))
-  assertthat::assert_that(is.data.frame(parameters),
-                          all(parameters$minx < parameters$maxx),
-                          nrow(parameters) > 0,
-                          is.numeric(ndigits),
-                          all(ndigits > 0),
-                          all(ndigits == round(ndigits)))
-
+  ## ==============
+  ## Error checking done in the calling routine
+  ## ==============
 
   # ========== Prepare matrix of new configurations
   mysample <- matrix(as.numeric(NA),

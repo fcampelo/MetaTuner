@@ -42,16 +42,9 @@ EvaluateConfigurations <- function(tuning.instances,
                                    summary.function = "median",
                                    parameters){
 
-  # ========== Error checking
-  assertthat::assert_that(is.list(tuning.instances),
-                          length(tuning.instances) > 0,
-                          is.numeric(instances.to.eval) ||
-                            instances.to.eval == "all",
-                          is.numeric(configs.to.eval) ||
-                            configs.to.eval == "all",
-                          is.character(algo.runner), length(algo.runner) == 1,
-                          is.character(summary.function),
-                          length(summary.function) == 1)
+  ## ==============
+  ## Error checking done in the calling routine
+  ## ==============
 
   if(identical(configs.to.eval, "all")) {
     configs.to.eval <- seq_along(config.list$A)

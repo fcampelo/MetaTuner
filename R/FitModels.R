@@ -25,12 +25,9 @@ FitModels <- function(X,
                       type = c("linear", "quantile"),
                       ...){
 
-  # ========== Error checking
-  type <- match.arg(type, c("linear", "quantile"))
-  assertthat::assert_that(is.data.frame(X),
-                          all(sapply(X, is.numeric)),
-                          assertthat::is.count(Nmodels),
-                          assertthat::is.count(model.order))
+  ## ==============
+  ## Error checking done in the calling routine
+  ## ==============
 
 
   # ========== Fit model (original)

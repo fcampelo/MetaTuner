@@ -52,13 +52,9 @@ GenerateInitialSample <- function(m0,
 
   if(length(ndigits) == 1) ndigits <- rep(ndigits, times = dim)
 
-  # Error checking
-  method <- match.arg(method, c("lhs", "sobol"))
-  assertthat::assert_that(assertthat::is.count(m0),
-                          assertthat::is.count(dim),
-                          is.numeric(ndigits),
-                          all(ndigits > 0),
-                          all(ndigits == round(ndigits)))
+  ## ==============
+  ## Error checking done in the calling routine
+  ## ==============
 
   if (method == "lhs"){
     mysample <- lhs::randomLHS(n = m0, k = dim)

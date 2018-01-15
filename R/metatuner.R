@@ -120,14 +120,17 @@ metatuner <- function(parameters,
                       optimization.method = "Nelder-Mead",
                       budget){
 
-  # =========== Error checking and initial definitions
+  # =========== Input standardization
+  initial.sampling <- match.arg(initial.sampling, c("lhs", "sobol"))
+  model.type <- match.arg(model.type, c("linear", "quantile"))
+
   if(length(ndigits) == 1) {
     ndigits <- rep(ndigits, times = nrow(parameters))
   }
 
-  # To be included
 
-
+  # =========== Error checking
+  SanityCheck(as.list(environment()))
 
 
   # =========== Prepare config.list structure

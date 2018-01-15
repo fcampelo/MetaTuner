@@ -21,13 +21,9 @@ SampleInstances <- function(instance.list,
                             N,
                             sampled.instances = numeric(0)){
 
-  # Error checking
-  assertthat::assert_that(is.list(instance.list),
-                          length(instance.list) > 0,
-                          assertthat::is.count(N),
-                          is.numeric(sampled.instances),
-                          all(sapply(sampled.instances, assertthat::is.count)),
-                          all(sampled.instances <= length(instance.list)))
+  ## ==============
+  ## Error checking done in the calling routine
+  ## ==============
 
   allindx <- seq_along(instance.list)
   if(length(sampled.instances) != 0) allindx <- allindx[-sampled.instances]
