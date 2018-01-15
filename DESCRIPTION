@@ -4,7 +4,7 @@ Title: MetaTuner: Metaheuristics Tuner
 Description: Functions for tuning algorithm parameters by sequential 
              optimization of robust models
 Date: 2017-01-15
-Version: 0.1.0.9025
+Version: 0.1.0.9026
 Depends: R (>= 3.4.0)
 Imports: hqreg, 
          stats,
@@ -15,7 +15,9 @@ Imports: hqreg,
 Suggests: ExpDE, 
           MOEADr,
           CAISEr,
-          smoof
+          smoof,
+    knitr,
+    rmarkdown
 Author: Athila Trindade and Felipe Campelo
 Maintainer: Felipe Campelo <fcampelo@ufmg.br>
 Authors@R: c(person("Felipe", "Campelo", email = "fcampelo@ufmg.br",
