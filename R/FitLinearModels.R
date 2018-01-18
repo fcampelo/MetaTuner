@@ -16,8 +16,16 @@ FitLinearModels <- function(X,
                             model.order){
 
   # ========== Fit "original" model
-  myformula <- paste0("perf ~ .^", model.order)
-  mymodel   <- stats::lm(as.formula(myformula), data = X)
+  modelDF <- Inf
+  model.order <- model.order + 1
+  while (modelDF >= nrow(X)){
+    model.order <- model.order - 1
+    myX <- X[, -ncol(X)]
+    myY <- X[, ncol(X)]
+    myformula <- do.call(polym, c(myX, degree = model.order, raw = TRUE))
+    modelDF <- ncol(myformula) + 1
+  }
+  mymodel   <- stats::lm(myY ~ myformula)
   mycoefs   <- stats::summary.lm(mymodel)$coefficients
 
 

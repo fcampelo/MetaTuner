@@ -185,7 +185,7 @@ metatuner <- function(parameters,
     models   <- FitModels(X           = config.list$config.perf,
                           Nmodels     = mi,
                           model.order = model.order,
-                          type        = model.type)
+                          model.type  = model.type)
 
     # Optimize models
     cat("\n-----")

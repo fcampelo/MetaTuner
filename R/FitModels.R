@@ -8,7 +8,7 @@
 #' @param Nmodels number of models to generate (1 original plus `Nmodels - 1`
 #'                perturbations)
 #' @param model.order order to use for the regression model. Defaults to 2
-#' @param type type of model to fit. `linear` for linear regression using OLS,
+#' @param model.type type of model to fit. `linear` for linear regression using OLS,
 #'             `quantile` for quantile regression of the median
 #' @param ... other parameters to be passed down to specific fitting functions
 #'
@@ -22,21 +22,19 @@
 FitModels <- function(X,
                       Nmodels,
                       model.order = 2,
-                      type = c("linear", "quantile"),
+                      model.type = c("linear", "quantile"),
                       ...){
 
   ## ==============
   ## Error checking done in the calling routine
   ## ==============
 
-  # TODO: change model arguments to do.call(polym, c(config.list$config.perf[,1:2], degree=3))
-
   # ========== Fit model (original)
-  if (type == "linear"){
+  if (model.type == "linear"){
     models <- FitLinearModels(X           = X,
                               Nmodels     = Nmodels,
                               model.order = model.order)
-  } else if (type == "quantile"){
+  } else if (model.type == "quantile"){
     models <- FitQuantileModels(X           = X,
                                 Nmodels     = Nmodels,
                                 model.order = model.order)
