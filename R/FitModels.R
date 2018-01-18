@@ -21,7 +21,7 @@
 
 FitModels <- function(X,
                       Nmodels,
-                      model.order = 2,
+                      model.order = 3,
                       model.type = c("linear", "quantile"),
                       ...){
 

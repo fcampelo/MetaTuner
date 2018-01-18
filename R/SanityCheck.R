@@ -40,6 +40,7 @@ SanityCheck <- function(myenv){
                             assertthat::is.count(elite.confs),
                             assertthat::is.count(model.order),
                             assertthat::is.count(budget),
+                            assertthat::is.count(seed),
                             all(sapply(ndigits, assertthat::is.count)))
 
     # Check character inputs
@@ -55,4 +56,6 @@ SanityCheck <- function(myenv){
                             length(optimization.method) == 1)
 
   })
+
+  invisible(TRUE)
 }

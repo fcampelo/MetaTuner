@@ -28,7 +28,7 @@
 #'
 #' @section Algorithm Runner:
 #' The `algo.runner` parameter points to a function that receive the instance
-#' configuration (i.e., one position of the list vector `tuning.instance`) and
+#' configuration (i.e., one element of the list vector `tuning.instance`) and
 #' a numeric vector with the values of the tunable parameters (e.g.,
 #' `myalgo <- function(instance, params){...}`), and return a single scalar
 #' quantifying the performance of the algorithm equipped with that configuration
@@ -59,8 +59,8 @@
 #'
 #' In all cases `metatuner` fits a polynomial model to the performance data
 #' gathered from running the candidate configurations on the tuning instances.
-#' Parameter `model.order` is used to inform the order of the polynomial model
-#' to be fitted.
+#' Parameter `model.order` is used to inform the (maximum) order of the
+#' polynomial model to be fitted.
 #'
 #'
 #' @section Optimization Methods:
@@ -83,7 +83,9 @@
 #' @param initial.sampling type of method to be used in the generation of the
 #'        initial sample. See Section *Initial Sampling Methods* for details.
 #'        Defaults to "lhs".
-#' @param ndigits integer with the number of digits to use for each parameter.
+#' @param ndigits integer with the number of digits to use as the resolution of
+#'        each parameter (i.e., the parameter will have `(10 ^ ndigits)`
+#'        possible values during the tuning process).
 #'        Accepts a vector input, if different resolutions are desired for
 #'        different parameters. Defaults to `3`.
 #' @param elite.confs number of elite configurations to maintain at each
@@ -101,6 +103,7 @@
 #'        configurations. See Section *Optimization Methods* for details.
 #'        Defaults to "Nelder-Mead".
 #' @param budget number of algorithm runs allocated for the tuning effort.
+#' @param seed seed for the random number generator. Use a scalar integer value.
 #'
 #' @export
 
@@ -118,7 +121,8 @@ metatuner <- function(parameters,
                       model.type          = "quantile",
                       model.order         = 3,
                       optimization.method = "Nelder-Mead",
-                      budget){
+                      budget,
+                      seed = as.integer(Sys.time())){
 
   # =========== Input standardization
   initial.sampling <- match.arg(initial.sampling, c("lhs", "sobol"))
@@ -131,6 +135,7 @@ metatuner <- function(parameters,
 
   # =========== Error checking
   SanityCheck(as.list(environment()))
+  set.seed(seed)
 
   # =========== Prepare config.list structure
   config.list        <- vector(mode = "list", length = 2)
@@ -222,8 +227,29 @@ metatuner <- function(parameters,
   }
 
   # =========== Prepare return structures
-  # don't forget config denormalization!
+  # Denormalize configurations
+  allconfs <- config.list$config.perf[, -ncol(config.list$config.perf)]
+  for (i in seq(ncol(allconfs))){
+    allconfs[, i] <- parameters$minx[i] +
+      allconfs[, i] * (parameters$maxx[i] - parameters$minx[i])
+  }
+  A <- lapply(seq(config.list$A),
+              FUN = function(i,A,conf){
+                A[[i]]$config <- conf[i, ]
+                return(A[[i]])
+              },
+              A    = config.list$A,
+              conf = allconfs)
+
+  config.list$config.perf[, -ncol(config.list$config.perf)] <- allconfs
+  config.list$A <- A
+
+  # Add explicit field with elite configurations and call parameters (for
+  #    completeness)
+  config.list <- c(list(elite.confs = config.list$config.perf[elite.list, ]),
+                   config.list,
+                   metatuner.inputs = as.list(match.call()))
 
   # =========== Return output
-
+  return(config.list)
 }

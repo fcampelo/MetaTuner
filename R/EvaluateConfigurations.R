@@ -53,14 +53,6 @@ EvaluateConfigurations <- function(tuning.instances,
     instances.to.eval <- seq_along(tuning.instances)
   }
 
-  assertthat::assert_that(all(instances.to.eval > 0),
-                          all(instances.to.eval <= length(tuning.instances)),
-                          all(instances.to.eval == round(instances.to.eval)),
-                          all(configs.to.eval > 0),
-                          all(configs.to.eval <= length(config.list$A)),
-                          all(configs.to.eval == round(configs.to.eval)))
-
-
   # ========== Prepare config.list fields
   npars   <- length(config.list$A[[1]]$config)
   nruns   <- config.list$nruns

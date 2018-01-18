@@ -8,7 +8,8 @@ metatuner(parameters, tuning.instances, algo.runner, m0 = 3 *
   nrow(parameters), mi = 5, initial.sampling = "lhs", ndigits = 3,
   elite.confs, N0 = 5, Ni = 1, summary.function = "median",
   model.type = "quantile", model.order = 3,
-  optimization.method = "Nelder-Mead", budget)
+  optimization.method = "Nelder-Mead", budget,
+  seed = as.integer(Sys.time()))
 }
 \arguments{
 \item{parameters}{data frame containing the parameter names and bound
@@ -30,7 +31,9 @@ Defaults to \code{5}.}
 initial sample. See Section \emph{Initial Sampling Methods} for details.
 Defaults to "lhs".}
 
-\item{ndigits}{integer with the number of digits to use for each parameter.
+\item{ndigits}{integer with the number of digits to use as the resolution of
+each parameter (i.e., the parameter will have \code{(10 ^ ndigits)}
+possible values during the tuning process).
 Accepts a vector input, if different resolutions are desired for
 different parameters. Defaults to \code{3}.}
 
@@ -56,6 +59,8 @@ configurations. See Section \emph{Optimization Methods} for details.
 Defaults to "Nelder-Mead".}
 
 \item{budget}{number of algorithm runs allocated for the tuning effort.}
+
+\item{seed}{seed for the random number generator. Use a scalar integer value.}
 }
 \description{
 Search for parameter configurations that are
@@ -93,7 +98,7 @@ which can be either a numeric vector or a matrix of row vectors.
 \section{Algorithm Runner}{
 
 The \code{algo.runner} parameter points to a function that receive the instance
-configuration (i.e., one position of the list vector \code{tuning.instance}) and
+configuration (i.e., one element of the list vector \code{tuning.instance}) and
 a numeric vector with the values of the tunable parameters (e.g.,
 \code{myalgo <- function(instance, params){...}}), and return a single scalar
 quantifying the performance of the algorithm equipped with that configuration
@@ -130,8 +135,8 @@ fit. Currently implemented alternatives are:
 
 In all cases \code{metatuner} fits a polynomial model to the performance data
 gathered from running the candidate configurations on the tuning instances.
-Parameter \code{model.order} is used to inform the order of the polynomial model
-to be fitted.
+Parameter \code{model.order} is used to inform the (maximum) order of the
+polynomial model to be fitted.
 }
 
 \section{Optimization Methods}{

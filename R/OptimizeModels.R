@@ -30,21 +30,21 @@ OptimizeModels <- function(parameters,
 
   # ========== Prepare optimization parameters
   # Objective function
-  myobjfun <- function(x, model){
-    modclass <- class(model)
-    x        <- as.data.frame(matrix(x, nrow = 1))
-    names(x) <- names(model$model)[-1]
+  myobjfun <- function(x, mymodel, mypars){
+    newX        <- as.data.frame(matrix(rep(x, 2), nrow  = 2, byrow = TRUE))
+    names(newX) <- mypars$name
+    modclass    <- class(mymodel$model)
 
     if (modclass == "lm"){
-      y <- stats::predict.lm(object  = model,
-                             newdata = x)
+      y <- stats::predict.lm(object  = mymodel$model,
+                             newdata = X)[1]
     } else if (modclass == "rq"){
-      y <- quantreg::predict.rq(object  = model,
-                                newdata = x)
+      y <- quantreg::predict.rq(object  = mymodel$model,
+                                newdata = X)[1]
     } else stop("Model class", modclass,
                 "not recognized by function OptimizeModels")
 
-    return(sign(y) * min(1e32, abs(y)))
+    return(sign(y) * min(1e32, abs(y))) # <-- prevents infinity
   }
 
   # Box constraints
@@ -57,20 +57,21 @@ OptimizeModels <- function(parameters,
 
   # ========== Optimize (minimize) models
   cat("\nOptimizing Models: ")
-  # PARALELL-IZE HERE
+  # PARALLEL-IZE HERE
   # VVVVVVVVVVVVVVVV
     for (i in seq(models)){
     # Initial point for optimization (random, feasible)
     theta <- runif(nrow(parameters))
     # cat("\n", theta)
 
-    Y <- stats::constrOptim(theta  = theta,
-                            f      = myobjfun,
-                            grad   = NULL,
-                            ui     = Ui,
-                            ci     = ci,
-                            method = optimization.method,
-                            model  = models[[i]])
+    Y <- stats::constrOptim(theta      = theta,
+                            f          = myobjfun,
+                            grad       = NULL,
+                            ui         = Ui,
+                            ci         = ci,
+                            method     = optimization.method,
+                            mymodel    = models[[i]],
+                            mypars     = parameters)
     mysample[i, ] <- Y$par
     cat(".")
   }

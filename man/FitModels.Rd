@@ -4,7 +4,8 @@
 \alias{FitModels}
 \title{Fit regression model to performance data}
 \usage{
-FitModels(X, Nmodels, model.order = 2, type = c("linear", "quantile"), ...)
+FitModels(X, Nmodels, model.order = 3, model.type = c("linear", "quantile"),
+  ...)
 }
 \arguments{
 \item{X}{data frame containing the performance data}
@@ -14,7 +15,7 @@ perturbations)}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
 
-\item{type}{type of model to fit. \code{linear} for linear regression using OLS,
+\item{model.type}{type of model to fit. \code{linear} for linear regression using OLS,
 \code{quantile} for quantile regression of the median}
 
 \item{...}{other parameters to be passed down to specific fitting functions}

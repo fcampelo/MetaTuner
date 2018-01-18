@@ -15,18 +15,29 @@ FitQuantileModels <- function(X,
                             Nmodels,
                             model.order){
 
-  # Fit "original" model
-  myformula <- paste0("perf ~ .^", model.order)
-  mymodel   <- quantreg::rq(as.formula(myformula), data = X)
+  # ========== Fit "original" model
+  modelDF     <- Inf
+  model.order <- model.order + 1
+  while (modelDF >= nrow(X)){
+    model.order <- model.order - 1
+    myformula <- do.call(polym, c(myX, degree = model.order, raw = TRUE))
+    modelDF <- ncol(myformula) + 1
+  }
+  ff <- as.formula(paste("perf ~ poly(",
+                         paste0(names(myX),collapse=", "),
+                         ", degree = ",model.order, ", raw = TRUE)"))
+
+  mymodel   <- quantreg::rq(ff, data = X)
   mycoefs   <- quantreg::summary.rq(mymodel)$coefficients
 
 
   # Generate perturbed models
-  all.models        <- vector(mode = "list", length = Nmodels)
-  all.models[[1]]   <- mymodel
-  names(all.models) <- c("original",
-                         paste0("perturbed",
-                                seq(Nmodels - 1)))
+  all.models            <- vector(mode = "list", length = Nmodels)
+  all.models[[1]]$model <- mymodel
+  all.models[[1]]$order <- model.order
+  names(all.models)     <- c("original",
+                             paste0("perturbed",
+                                    seq(Nmodels - 1)))
 
   for (i in 2:Nmodels){
     newmodel      <- mymodel
@@ -36,7 +47,8 @@ FitQuantileModels <- function(X,
     newcoefs[1, 1] <- mycoefs[1, 1] # no need to disturb the intercept
 
     newmodel$coefficients <- newcoefs[, 1]
-    all.models[[i]]       <- newmodel
+    all.models[[i]]$model <- newmodel
+    all.models[[i]]$order <- model.order
   }
   return(all.models)
 }

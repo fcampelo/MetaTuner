@@ -16,25 +16,28 @@ FitLinearModels <- function(X,
                             model.order){
 
   # ========== Fit "original" model
-  modelDF <- Inf
+  modelDF     <- Inf
   model.order <- model.order + 1
   while (modelDF >= nrow(X)){
     model.order <- model.order - 1
-    myX <- X[, -ncol(X)]
-    myY <- X[, ncol(X)]
     myformula <- do.call(polym, c(myX, degree = model.order, raw = TRUE))
     modelDF <- ncol(myformula) + 1
   }
-  mymodel   <- stats::lm(myY ~ myformula)
+  ff <- as.formula(paste("perf ~ poly(",
+                         paste0(names(myX),collapse=", "),
+                         ", degree = ",model.order, ", raw = TRUE)"))
+
+  mymodel   <- stats::lm(ff, data = X)
   mycoefs   <- stats::summary.lm(mymodel)$coefficients
 
 
   # ========== Generate perturbed models
-  all.models        <- vector(mode = "list", length = Nmodels)
-  all.models[[1]]   <- mymodel
-  names(all.models) <- c("original",
-                         paste0("perturbed",
-                                seq(Nmodels - 1)))
+  all.models            <- vector(mode = "list", length = Nmodels)
+  all.models[[1]]$model <- mymodel
+  all.models[[1]]$order <- model.order
+  names(all.models)     <- c("original",
+                             paste0("perturbed",
+                                    seq(Nmodels - 1)))
 
   for (i in 2:Nmodels){
     newmodel      <- mymodel
@@ -44,7 +47,8 @@ FitLinearModels <- function(X,
     newcoefs[1, 1] <- mycoefs[1, 1] # no need to disturb the intercept
 
     newmodel$coefficients <- newcoefs[, 1]
-    all.models[[i]]       <- newmodel
+    all.models[[i]]$model <- newmodel
+    all.models[[i]]$order <- model.order
   }
   return(all.models)
 }
