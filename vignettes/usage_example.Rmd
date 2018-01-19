@@ -135,8 +135,8 @@ optimization.method <- "Nelder-Mead" # optimization method to use
 
 All that remains is calling the method and checking the results:
 
-```{r, echo = FALSE, eval = FALSE, cache = TRUE}
-output <- MetaTuner::metatuner(parameters, tuning.instances, algo.runner,
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+output <- MetaTuner::metatuner(parameters, tuning.instances, "myalgo",
                     m0, mi, initial.sampling, ndigits, elite.confs,
                     N0, Ni, summary.function,
                     model.type, model.order,
@@ -144,7 +144,7 @@ output <- MetaTuner::metatuner(parameters, tuning.instances, algo.runner,
                     budget)
 ```
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = FALSE, eval = TRUE}
 # Check the elite configurations found
 output$elite.confs
 ```

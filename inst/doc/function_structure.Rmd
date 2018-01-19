@@ -1,0 +1,250 @@
+---
+title: "MetaTuner Function Structure"
+author: "Felipe Campelo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MetaTuner Function Structure}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This document summarizes the structure of inputs and outputs of each function 
+that composes MetaTuner. It is intended as a general guide for future 
+contributions and code maintenance.
+
+## Function: _SanityCheck()_
+Performs all checks on the input parameters, to make sure 
+everything is nominal. 
+
+- **Inputs**: 
+    - List object containing all variables defined in the environment of function 
+_metatuner_ (which includes all input parameters).
+
+- **Outputs**: 
+    - Logical `TRUE` (invisibly), if no error is detected.
+    
+
+## Function: _GenerateInitialSample()_
+Generates an initial sample of candidate configurations in the 
+space of tunable parameters
+
+- **Inputs**: 
+    - `m0` (integer), number of points to be generated.
+    
+    - `dim` (integer), number of tunable parameters.
+    
+    - `method` (character), type of method to be used for generating the 
+    sample. Currently accepts "lhs" or "sobol".
+    
+    - `ndigits` (integer), number of decimal places to use for each parameter. 
+    Can be either a scalar or a vector of length `dim`.
+
+- **Outputs**: 
+    - List vector where each object is a configuration list, containing the 
+    following fields:
+    
+        - `config`, a named list containing parameter values
+        
+        - `Yij`, a data frame with two columns: `instance.ID` and `y`
+        (the performance value of the configuration on the instance). This data 
+        frame is generated empty.
+        
+        - `perf`, a numeric scalar containing the summary performance value of 
+        the configuration. Is generated as `NA`.
+
+
+
+## Function: _SampleInstances()_
+Samples (without replacement) instances for the tuning process.
+
+- **Inputs**: 
+    - `instance.list` (list), a list vector containing all available tuning 
+    instances. Each position of this list contains the information of a given 
+    problem instance, in the form of the following fields:
+    
+        - `FUN`, the name of the function that implements the instance. Must
+        have a formal argument `X` (e.g., `myfun <- function(X){...}`),
+        which can be either a numeric vector or a matrix of row vectors.
+        
+        - `xmin`, the lower bound for the optimization variables.
+        
+        - `xmax`, the upper bound for the optimization variables.
+        
+        - `alias` (optional), an alias for the instance.
+        
+    - `N` (integer), number of instances to sample.
+    
+    - `sampled.instances` (integer), vector of indices of all instances that 
+    have already been sampled (to prevent repeated sampling).
+
+- **Outputs**: 
+    - Integer vector of instance indices, of size between zero (if all 
+    instances have already been sampled) and `N` 
+
+
+## Function: _EvaluateConfigurations()_
+Runs the algorithm (equipped with the candidate configurations) on a sample of 
+instances, and calculates a summary performance index for each configuration.
+
+- **Inputs**: 
+    - `tuning.instances` (see _SampleInstances()_ above)
+    
+    - `instances.to.eval` (integer), vector containing the indices of the 
+    instances to be used in the evaluation.
+    
+    - `config.list` (list), list containing field `A` (list vector of all
+    configurations sampled so far) as well as other information regarding the 
+    performance of all configurations tested and the process of MetaTuner. See 
+    below for more information.
+    
+    - `configs.to.eval` (integer), vector containing the indices of the 
+    configurations to be evaluated. Generally used to indicate the elite 
+    configurations which will be evaluated in extra instances.
+    
+    - `algo.runner` (character), name of function used for evaluating the 
+    configurations. The `algo.runner` parameter points to a function that 
+    receives two parameters: the instance configuration (i.e., one element of 
+    list vector `tuning.instances`); and a numeric vector with the values of the 
+    tunable parameters (e.g., `myalgo <- function(instance, params){...}`). 
+    The function indicated as `algo.runner` must return a single scalar 
+    quantifying the performance of the algorithm equipped with that 
+    configuration for that particular instance. 
+    **IMPORTANT**: `metatuner` assumes one wants to _minimize_ the expected
+    output of `algo.runner`. When working with quality indicators that should be
+    maximized, please do not forget to multiply this output by `-1` in the
+    output of `algo.runner`.
+    
+    - `summary.function` (character), name of function for aggregating the 
+    (scaled) output values of `algo.runner` into a single performance value. 
+    Usual functions include `mean` and `median`, but in principle any 
+    summarizing function can be used.
+    
+    - `parameters` (data.frame), data frame with three columns:
+    
+        - `name`, with a unique name for each parameter.
+        
+        - `minx`, with the smallest allowed value for each parameter.
+        
+        - `maxx`, with the largest allowed value for each parameter.
+
+- **Outputs**: 
+    - `config.list` (list), with updated values.
+
+### IMPORTANT: `config.list`
+The list `config.list` is possibly the most important variable in the 
+`metatuner` flow, as it stores all information regarding the candidate 
+configurations and their performance values. Its fields are:
+    - `config.list$A`, a list vector where each element `i` has three 
+    fields:
+    
+        - `config.list$A[[i]]$config`, containing the (normalized) values 
+        of the parameters for the i-th configuration.
+        
+        - `config.list$A[[i]]$Yij`, data frame containing the IDs of each 
+        instances already visited by the i-th configuration, and the (raw) 
+        performance observed for the configuration on those instances.
+        
+        - `config.list$A[[i]]$perf`, numeric scalar containing the 
+        summarized performance attributed to the i-th configuration.
+        
+    - `config.list$nruns`, number of runs of `algo.runner` executed so far.
+    
+    - `config.list$Yij.all`, data frame containing the (raw) performance 
+    observed for all configurations in `config.list$A` on the instances 
+    visited by each one. If a given candidate configuration has not yet
+    visited a given instance the value is set as `NA`.
+    
+    - `config.list$Yij.norm`, data.frame containing the (normalized) 
+    performance of each candidate configuration on each instance visited.
+    
+    - `config.list$config.perf`, data frame summarizing the available 
+    information: has one column for each tunable parameter (normalized), 
+    plus one final column `perf` containing the summarized performance value of 
+    each configuration.
+
+
+## Function: _FitModels()_
+Fits regression models of performance _vs_ parameter values. This function is 
+a wrapper for specific model fitting functions (currently available: 
+_FitLinearModels()_ and _FitQuantileModels()_). If new regression models are 
+added they must be called from within this function (and the internal checks 
+of _FitModels()_ must be updated accordingly.
+
+- **Inputs**: 
+    - `X` (data frame), receives `config.list$config.perf` (see above for 
+    details)
+    
+    - `Nmodels` (integer), number of models to generate (1 original plus 
+    `Nmodels - 1` perturbed models)
+    
+    - `model.order` (integer), order of the polynomial to use for the 
+    regression model.
+    
+    - `model.type` (character), type of model to fit. Currently accepts 
+    `linear` for linear regression using OLS and `quantile` for quantile 
+    regression (median). 
+
+- **Outputs**: 
+    - list vector where each element contains two fields: 
+        - `$model`, with a model object (`lm` or `rq`, depending on 
+        `model.type`). The first element is the original model, and the others 
+        are perturbed models.
+        
+        - `order`, order of the model. Can be lower than `model.order` if not 
+        enough observations are available for fitting a high-order model.
+
+
+
+## Function: _OptimizeModels()_
+Optimizes each model returned by _FitModels()_ and returns new candidate 
+configurations. 
+
+**IMPORTANT**: _OptimizeModels()_ verifies the class of the model objects 
+returned by _FitModels()_ to invoke the correct `predict` method. 
+If new types of models are added this routine must be updated accordingly.
+
+- **Inputs**: 
+    - `parameters` (data.frame), see _EvaluateConfigurations()_.
+    
+    - `models` (list), list vector containing models generated by _FitModels()_.
+    
+    - `optimization.method` (character), optimization method to be used. 
+    `metatuner` uses [stats::constrOptim()] to optimize the predicted quality of
+    `algo.runner` with regards to its tunable parameters. Any method that does
+    not require an explicit function for returning gradient / Hessian 
+    information can be used as `optimization.method`. Currently we recommend 
+    using `Nelder-Mead`, but `SANN` is also a (usually slower) possibility.
+
+    - `ndigits` (integer), see _GenerateInitialSample()_.
+
+
+- **Outputs**: 
+    - list vector with the same structure as the one output by 
+    _GenerateInitialSample()_.
+
+
+## Function: _FilterRepeatedConfigurations()_
+Removes redundant (repeated) candidate configurations.
+
+- **Inputs**: 
+    - `newconfs` (list), new configurations returned by _OptimizeModels()_.
+    - `config.list` (list), see _EvaluateConfigurations()_
+
+- **Outputs**: 
+    - updated list `newconfs` without redundant configurations (same structure 
+    as the output of _OptimizeModels()_.
+    
+***
+    
+## Output structure of _metatuner()_
+
+The output structure of _metatuner()_ is essentially the final `config.list`, 
+with some modifications:
+    - the configurations in `config.list$A` and `config.list$config.perf` are 
+    denormalized (i.e., are returned in their original scales).
+    - adds field `config.list$elite.confs` containing the best configurations 
+    found (in decreasing order of quality).
+    - adds field `config.list$metatuner.inputs`, containing all input parameters 
+    used in the call to _metatuner()_ (for improved reproducibility).
+

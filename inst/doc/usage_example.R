@@ -1,7 +1,7 @@
 ## ------------------------------------------------------------------------
 suppressPackageStartupMessages(require(smoof))
 suppressPackageStartupMessages(require(ExpDE))
-#suppressPackageStartupMessages(require(MetaTuner))
+suppressPackageStartupMessages(require(MetaTuner))
 
 ## ------------------------------------------------------------------------
 parameters <- data.frame(name = c("f", "cr"),
@@ -46,30 +46,30 @@ assign(x = tuning.instances[[i]]$FUN, value = myfun)
 myalgo <- function(instance, params){
   D        <- length(instance$xmin) # Get problem dimension
   popsize  <- 5 * D                # Define population size
-
+  
   # ExpDE's input for problem parameters
   probpars <- list(name = instance$FUN,
                    xmin = instance$xmin,
                    xmax = instance$xmax)
-
+  
   # Mutation parameters
   mutpars  <- list(name = "mutation_rand", f = params$config[1])
-
+  
   # Recombination parameters
   recpars  <- list(name = "recombination_bin",
                    cr   = params$config[2], nvecs = 1)
-
+  
   # Other fixed parameters for ExpDE
   selpars  <- list(name = "selection_standard")
   showpars <- list(show.iters = "dots", showevery = 10)
   stopcrit <- list(names = "stop_maxiter", maxiter = 100)
-
+  
   # Run DE on instance
   out <- ExpDE(popsize = popsize,
                mutpars = mutpars, recpars = recpars,
                selpars = selpars, stopcrit = stopcrit,
                probpars = probpars, showpars = showpars)
-
+  
   # Return quality value (smaller = better)
   return(out$Fbest)
 }
@@ -89,16 +89,15 @@ model.type          <- "quantile" # type of regression to use
 model.order         <- 3          # order of the polynomial used for regression
 optimization.method <- "Nelder-Mead" # optimization method to use
 
-## ---- echo = FALSE, eval = FALSE, cache = TRUE---------------------------
-#  output <- MetaTuner::metatuner(parameters, tuning.instances,
-algo.runner = myalgo,
-#                      m0, mi, initial.sampling, ndigits, elite.confs,
-#                      N0, Ni, summary.function,
-#                      model.type, model.order,
-#                      optimization.method,
-#                      budget)
+## ---- echo = FALSE, eval = TRUE, cache = TRUE----------------------------
+output <- MetaTuner::metatuner(parameters, tuning.instances, "myalgo",
+                    m0, mi, initial.sampling, ndigits, elite.confs,
+                    N0, Ni, summary.function,
+                    model.type, model.order,
+                    optimization.method,
+                    budget)
 
-## ---- echo = FALSE, eval = FALSE-----------------------------------------
-#  # Check the elite configurations found
-#  output$elite.confs
+## ---- echo = FALSE, eval = TRUE------------------------------------------
+# Check the elite configurations found
+output$elite.confs
 
