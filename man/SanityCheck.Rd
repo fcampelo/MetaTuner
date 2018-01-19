@@ -7,7 +7,7 @@
 SanityCheck(myenv)
 }
 \arguments{
-\item{myenv}{list containing input parameters used for \code{\link[=metatun]{metatun()}}.}
+\item{myenv}{list containing input parameters used for \code{\link[=metatuner]{metatuner()}}.}
 }
 \description{
 Check sanity of inputs for metatuner

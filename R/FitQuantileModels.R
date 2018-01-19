@@ -12,8 +12,8 @@
 #'
 
 FitQuantileModels <- function(X,
-                            Nmodels,
-                            model.order){
+                              Nmodels,
+                              model.order){
 
   # ========== Fit "original" model
   modelDF     <- Inf
@@ -21,14 +21,14 @@ FitQuantileModels <- function(X,
   myX         <- X[, -ncol(X)]
   while (modelDF >= nrow(X)){
     model.order <- model.order - 1
-    myformula <- do.call(polym, c(myX,
-                                  degree = model.order,
-                                  raw    = TRUE))
+    myformula <- do.call(stats::polym, c(myX,
+                                         degree = model.order,
+                                         raw    = TRUE))
     modelDF <- ncol(myformula) + 1
   }
-  ff <- as.formula(paste("perf ~ poly(",
-                         paste0(names(myX),collapse=", "),
-                         ", degree = ",model.order, ", raw = TRUE)"))
+  ff <- stats::as.formula(paste("perf ~ poly(",
+                                paste0(names(myX), collapse=", "),
+                                ", degree = ", model.order, ", raw = TRUE)"))
 
   mymodel   <- quantreg::rq(ff, data = X)
   mycoefs   <- quantreg::summary.rq(mymodel, se = "ker")$coefficients
@@ -45,7 +45,7 @@ FitQuantileModels <- function(X,
   for (i in 2:Nmodels){
     newmodel      <- mymodel
     newcoefs      <- mycoefs
-    coefnoise     <- (-1 + 2 * runif(nrow(newcoefs))) * mycoefs[, 2]
+    coefnoise     <- (-1 + 2 * stats::runif(nrow(newcoefs))) * mycoefs[, 2]
     newcoefs[, 1] <- mycoefs[, 1] + coefnoise
     newcoefs[1, 1] <- mycoefs[1, 1] # no need to disturb the intercept
 

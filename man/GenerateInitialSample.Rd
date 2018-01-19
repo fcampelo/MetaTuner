@@ -49,15 +49,6 @@ implementation of package \code{SobolSequence}. Needs no additional parameters.
 }
 }
 
-\examples{
-myconfs <- GenerateInitialSample(m0 = 20, dim = 2,
-                                 method = "sobol") # Using LDSP
-myconfs <- GenerateInitialSample(m0 = 100, dim = 5,
-                                 method = "lhs") # Using LHS
-configs <- as.data.frame(t(sapply(myconfs,
-                                  function(x){x$config})))
-pairs(configs, pch = 20)
-}
 \author{
 Felipe Campelo (\email{fcampelo@ufmg.br}),
 Athila Trindade (\email{rochaathila@gmail.com})

@@ -2,7 +2,7 @@ Package: MetaTuner
 Type: Package
 Title: MetaTuner: Metaheuristics Tuner
 Description: Functions for tuning algorithm parameters by sequential 
-             optimization of robust models
+             optimization of robust models.
 Date: 2017-01-19
 Version: 0.1.0.9101
 Depends: R (>= 3.4.0)
@@ -23,7 +23,7 @@ Maintainer: Felipe Campelo <fcampelo@ufmg.br>
 Authors@R: c(person("Felipe", "Campelo", email = "fcampelo@ufmg.br",
                     role = c("aut", "cre")),
                 person("Athila", "Trindade", email = "rochaathila@gmail.com ",
-                    role = c("aut", "cre")))
+                    role = c("aut")))
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

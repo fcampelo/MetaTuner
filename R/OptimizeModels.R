@@ -61,7 +61,7 @@ OptimizeModels <- function(parameters,
   # VVVVVVVVVVVVVVVV
     for (i in seq(models)){
     # Initial point for optimization (random, feasible)
-    theta <- runif(nrow(parameters))
+    theta <- stats::runif(nrow(parameters))
     # cat("\n", theta)
 
     Y <- stats::constrOptim(theta      = theta,

@@ -1,6 +1,6 @@
 #' Check sanity of inputs for metatuner
 #'
-#' @param myenv list containing input parameters used for [metatun()].
+#' @param myenv list containing input parameters used for [metatuner()].
 #'
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br})
 #'
