@@ -1,7 +1,7 @@
 ## ------------------------------------------------------------------------
 suppressPackageStartupMessages(require(smoof))
 suppressPackageStartupMessages(require(ExpDE))
-#suppressPackageStartupMessages(require(metatuner))
+#suppressPackageStartupMessages(require(MetaTuner))
 
 ## ------------------------------------------------------------------------
 parameters <- data.frame(name = c("f", "cr"),
@@ -89,15 +89,15 @@ model.type          <- "quantile" # type of regression to use
 model.order         <- 3          # order of the polynomial used for regression
 optimization.method <- "Nelder-Mead" # optimization method to use
 
-## ---- echo = FALSE, eval = TRUE, cache = TRUE----------------------------
-output <- metatuner(parameters, tuning.instances, algo.runner,
-                    m0, mi, initial.sampling, ndigits, elite.confs,
-                    N0, Ni, summary.function,
-                    model.type, model.order,
-                    optimization.method,
-                    budget)
+## ---- echo = FALSE, eval = FALSE, cache = TRUE---------------------------
+#  output <- MetaTuner::metatuner(parameters, tuning.instances, algo.runner,
+#                      m0, mi, initial.sampling, ndigits, elite.confs,
+#                      N0, Ni, summary.function,
+#                      model.type, model.order,
+#                      optimization.method,
+#                      budget)
 
-## ------------------------------------------------------------------------
-# Check the elite configurations found
-output$elite.confs
+## ---- echo = FALSE, eval = FALSE-----------------------------------------
+#  # Check the elite configurations found
+#  output$elite.confs
 
