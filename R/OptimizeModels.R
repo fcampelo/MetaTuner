@@ -37,10 +37,10 @@ OptimizeModels <- function(parameters,
 
     if (modclass == "lm"){
       y <- stats::predict.lm(object  = mymodel$model,
-                             newdata = X)[1]
+                             newdata = newX)[1]
     } else if (modclass == "rq"){
       y <- quantreg::predict.rq(object  = mymodel$model,
-                                newdata = X)[1]
+                                newdata = newX)[1]
     } else stop("Model class", modclass,
                 "not recognized by function OptimizeModels")
 

@@ -18,9 +18,12 @@ FitQuantileModels <- function(X,
   # ========== Fit "original" model
   modelDF     <- Inf
   model.order <- model.order + 1
+  myX         <- X[, -ncol(X)]
   while (modelDF >= nrow(X)){
     model.order <- model.order - 1
-    myformula <- do.call(polym, c(myX, degree = model.order, raw = TRUE))
+    myformula <- do.call(polym, c(myX,
+                                  degree = model.order,
+                                  raw    = TRUE))
     modelDF <- ncol(myformula) + 1
   }
   ff <- as.formula(paste("perf ~ poly(",
@@ -28,7 +31,7 @@ FitQuantileModels <- function(X,
                          ", degree = ",model.order, ", raw = TRUE)"))
 
   mymodel   <- quantreg::rq(ff, data = X)
-  mycoefs   <- quantreg::summary.rq(mymodel)$coefficients
+  mycoefs   <- quantreg::summary.rq(mymodel, se = "ker")$coefficients
 
 
   # Generate perturbed models

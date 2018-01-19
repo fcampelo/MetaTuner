@@ -24,7 +24,7 @@ First, lets load the required packages for this example:
 ```{r}
 suppressPackageStartupMessages(require(smoof))
 suppressPackageStartupMessages(require(ExpDE))
-#suppressPackageStartupMessages(require(MetaTuner))
+suppressPackageStartupMessages(require(MetaTuner))
 ```
   
 As mentioned above, we will attempt to tune the two main parameters of the DE 
