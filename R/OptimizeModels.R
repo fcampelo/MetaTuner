@@ -8,7 +8,6 @@
 #'
 #' @return list containing new candidate configurations found by optimization
 #'
-#'
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
 #'
@@ -41,6 +40,10 @@ OptimizeModels <- function(parameters,
     } else if (modclass == "rq"){
       y <- quantreg::predict.rq(object  = mymodel$model,
                                 newdata = newX)[1]
+    } else if (modclass == "hqreg"){
+      y <- stats::predict(object = mymodel$model,
+                          X      = x,
+                          lambda = mymodel$model$lambda[2])[1]
     } else stop("Model class", modclass,
                 "not recognized by function OptimizeModels")
 
@@ -52,34 +55,52 @@ OptimizeModels <- function(parameters,
   Ui <- diag(nrow = nrow(parameters),
              ncol = nrow(parameters))
   Ui <- rbind(Ui, -Ui)
-  # print(Ui)
-  # cat("\n", ci)
 
-  # ========== Optimize (minimize) models
-  cat("\nOptimizing Models: ")
-  # PARALLEL-IZE HERE
-  # VVVVVVVVVVVVVVVV
-    for (i in seq(models)){
-    # Initial point for optimization (random, feasible)
+  # ========== Optimize (minimize) models in a parallel environment
+  i <- NULL
+  optparams <- foreach::foreach(i = models, .combine = 'rbind') %dopar% {
     theta <- stats::runif(nrow(parameters))
-    # cat("\n", theta)
-
-    Y <- stats::constrOptim(theta      = theta,
-                            f          = myobjfun,
-                            grad       = NULL,
-                            ui         = Ui,
-                            ci         = ci,
-                            method     = optimization.method,
-                            mymodel    = models[[i]],
-                            mypars     = parameters)
-    mysample[i, ] <- Y$par
-    cat(".")
+    Y <- stats::constrOptim(theta    = theta,
+                            f        = myobjfun,
+                            grad     = NULL,
+                            ui       = Ui,
+                            ci       = ci,
+                            method   = optimization.method,
+                            mymodel  = i,
+                            mypars   = parameters)
+    return(Y$par)
   }
 
+  mysample <- optparams
+  rownames(mysample) <- NULL
 
   for (j in 1:ncol(mysample)){
     mysample[, j] <- round(mysample[, j], digits = ndigits[j])
   }
+
+  # # PARALLEL-IZE HERE
+  # # VVVVVVVVVVVVVVVV
+  #   for (i in seq(models)){
+  #   # Initial point for optimization (random, feasible)
+  #   theta <- runif(nrow(parameters))
+  #   # cat("\n", theta)
+  #
+  #   Y <- stats::constrOptim(theta      = theta,
+  #                           f          = myobjfun,
+  #                           grad       = NULL,
+  #                           ui         = Ui,
+  #                           ci         = ci,
+  #                           method     = optimization.method,
+  #                           mymodel    = models[[i]],
+  #                           mypars     = parameters)
+  #   mysample[i, ] <- Y$par
+  #   cat(".")
+  # }
+  #
+  #
+  # for (j in 1:ncol(mysample)){
+  #   mysample[, j] <- round(mysample[, j], digits = ndigits[j])
+  # }
 
   # ========== Return new configurations
   newconfs <- apply(X      = mysample,

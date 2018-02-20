@@ -4,11 +4,11 @@
 \alias{metatuner}
 \title{Metaheuristics tuner}
 \usage{
-metatuner(parameters, tuning.instances, algo.runner, m0 = 3 *
-  nrow(parameters), mi = 5, initial.sampling = "lhs", ndigits = 3,
-  elite.confs, N0 = 5, Ni = 1, summary.function = "median",
-  model.type = "quantile", model.order = 3,
-  optimization.method = "Nelder-Mead", budget,
+metatuner(parameters, tuning.instances, algo.runner, elite.confs, budget,
+  m0 = 3 * nrow(parameters), mi = 5L, initial.sampling = "lhs",
+  ndigits = 3L, N0 = 5L, Ni = 1L, summary.function = "median",
+  model.type = "quantile", model.order = 3L,
+  optimization.method = "Nelder-Mead", ncores = 1L,
   seed = as.integer(Sys.time()))
 }
 \arguments{
@@ -20,6 +20,11 @@ constraints. See Section \emph{Tunable Parameters} for details.}
 
 \item{algo.runner}{name of function used for evaluating the configurations.
 See Section \emph{Algorithm Runner} for details.}
+
+\item{elite.confs}{number of elite configurations to maintain at each
+iteration.}
+
+\item{budget}{number of algorithm runs allocated for the tuning effort.}
 
 \item{m0}{initial number of configurations to be generated. Defaults to
 \code{3 * nrow(parameters)}.}
@@ -36,9 +41,6 @@ each parameter (i.e., the parameter will have \code{(10 ^ ndigits)}
 possible values during the tuning process).
 Accepts a vector input, if different resolutions are desired for
 different parameters. Defaults to \code{3}.}
-
-\item{elite.confs}{number of elite configurations to maintain at each
-iteration.}
 
 \item{N0}{initial number of instances to sample. Defaults to \code{5}.}
 
@@ -58,7 +60,9 @@ summarizing function can be used.}
 configurations. See Section \emph{Optimization Methods} for details.
 Defaults to "Nelder-Mead".}
 
-\item{budget}{number of algorithm runs allocated for the tuning effort.}
+\item{ncores}{number of processor cores to use. Receives either an integer or
+the value "max", in which case the method uses all available cores,
+minus one.}
 
 \item{seed}{seed for the random number generator. Use a scalar integer value.}
 }
@@ -131,6 +135,8 @@ fit. Currently implemented alternatives are:
 \itemize{
 \item \code{linear} for linear regression using OLS.
 \item \code{quantile} for quantile regression (uses package \code{quantreg}).
+\item \code{lasso} for lasso regression (uses package \code{hqreg})
+\item \code{ridge} for ridge regression (uses package \code{hqreg})
 }
 
 In all cases \code{metatuner} fits a polynomial model to the performance data

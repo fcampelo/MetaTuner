@@ -23,12 +23,13 @@
 #' functions include `mean` and `median`, but in principle any summarizing
 #' function can be used.
 #' @param parameters data frame containing the parameter names and bound
-#' constraints
+#' constraints.
 #'
 #' @return Updated `config.list` containing performance evaluation of
 #' `configs.to.eval` on `instances.to.eval`, as well as `nruns`, the number of
 #' algorithm runs performed.
 #'
+#' @importFrom foreach %dopar% %:%
 #'
 #' @author Felipe Campelo (\email{fcampelo@@ufmg.br}),
 #'         Athila Trindade (\email{rochaathila@@gmail.com})
@@ -84,69 +85,75 @@ EvaluateConfigurations <- function(tuning.instances,
 
 
   # ========== Evaluate config/instance pairs that need to be evaluated
-  # PARALLEL-IZE HERE
-  # VVVVVVVVVVVVVVVV
-  for (i in seq(config.list$A)){
-    if (i %in% configs.to.eval){
-      # ^^ should the config be evaluated?
 
-      instances.seen <- config.list$A[[i]]$Yij$instance.ID
-      for (j in seq_along(instances.to.eval)){
-        if(!(instances.to.eval[j] %in% instances.seen)){
-          # ^^ hasn't the instance been evaluated already?
+  # Define instance indices to be used by configurations to be evaluated
+  instances.seen <- config.list$A[[configs.to.eval[1]]]$Yij$instance.ID
+  inst <- which(!(instances.to.eval) %in% instances.seen)
 
-          # denormalize configuration
-          myconf <- config.list$A[[i]]
-          myconf$config <- parameters$minx +
-            myconf$config * (parameters$maxx - parameters$minx)
+  # Define set of instances to be used visited
+  inst.to.eval.parallel <- tuning.instances[instances.to.eval[inst]]
 
-          # call algorithm runner
-          yij <- do.call(algo.runner,
-                         args = list(instance = tuning.instances[[instances.to.eval[j]]],
-                                     params   = myconf))
+  if (length(inst.to.eval.parallel) > 0){
 
-          # Store result in config.list
-          config.list$A[[i]]$Yij <-
-            rbind(config.list$A[[i]]$Yij,
-                  data.frame(instance.ID = instances.to.eval[j],
-                             y           = yij))
-          Yij.all[instances.to.eval[j], i] <- yij
+    # Define set of configs to evaluate
+    confs.to.eval.parallel <- config.list$A[configs.to.eval]
 
-          # update run counter
-          nruns <- nruns + 1
-        }
-      }
+    # Denormalize configurations to be used
+    for(i in 1:length(confs.to.eval.parallel)){
+      confs.to.eval.parallel[[i]]$config <- parameters$minx +
+        confs.to.eval.parallel[[i]]$config * (parameters$maxx - parameters$minx)
     }
+
+    # ========== Parallel evaluation
+    matperfs <- foreach::foreach(i = inst.to.eval.parallel, .combine='rbind') %:%
+      foreach::foreach(c = confs.to.eval.parallel, .combine='cbind') %dopar% {
+        do.call(algo.runner, list(instance = i, params = c))
+      }
+
+    # Store result from matperfs in config.list and Yij.all matrix
+    for(i in 1:ncol(matperfs)) {
+      for(j in 1:nrow(matperfs)){
+        config.list$A[[configs.to.eval[i]]]$Yij <-
+          rbind(config.list$A[[configs.to.eval[i]]]$Yij,
+                data.frame(instance.ID = instances.to.eval[inst[j]],
+                           y           = matperfs[j, i]))
+        Yij.all[instances.to.eval[inst[j]], configs.to.eval[i]] <- matperfs[j,i]
+      }
+      rownames(config.list$A[[configs.to.eval[i]]]$Yij) <-
+        seq(1:nrow(config.list$A[[configs.to.eval[i]]]$Yij))
+    }
+
+    nruns <- nruns + (ncol(matperfs) * nrow(matperfs))
+
+    # Calculate normalized performances
+    Yij.vals <- Yij.all[which(rowSums(!is.na(Yij.all)) != 0), ]
+    instmins <- matrix(apply(Yij.vals, MARGIN = 1, FUN = min, na.rm = TRUE),
+                       nrow = nrow(Yij.vals),
+                       ncol = ncol(Yij.vals),
+                       byrow = FALSE)
+    instmaxs <- matrix(apply(Yij.vals, MARGIN = 1, FUN = max, na.rm = TRUE),
+                       nrow = nrow(Yij.vals),
+                       ncol = ncol(Yij.vals),
+                       byrow = FALSE)
+    Yij.norm <- (Yij.vals - instmins) / (instmaxs - instmins)
+
+    # Update data frame of configuration performances
+    config.perf <- cbind(config.perf,
+                         perf = apply(X = Yij.norm,
+                                      MARGIN = 2,
+                                      FUN = summary.function,
+                                      na.rm = TRUE))
+
+    # Give each config its performance value
+    for (i in seq_along(config.list$A)){
+      config.list$A[[i]]$perf <- config.perf$perf[i]
+    }
+
+    # Return output
+    config.list$Yij.all     <- Yij.all
+    config.list$nruns       <- nruns
+    config.list$Yij.norm    <- Yij.norm
+    config.list$config.perf <- config.perf
   }
-
-  # Calculate normalized performances
-  Yij.vals <- Yij.all[which(rowSums(!is.na(Yij.all)) != 0), ]
-  instmins <- matrix(apply(Yij.vals, MARGIN = 1, FUN = min, na.rm = TRUE),
-                     nrow = nrow(Yij.vals),
-                     ncol = ncol(Yij.vals),
-                     byrow = FALSE)
-  instmaxs <- matrix(apply(Yij.vals, MARGIN = 1, FUN = max, na.rm = TRUE),
-                     nrow = nrow(Yij.vals),
-                     ncol = ncol(Yij.vals),
-                     byrow = FALSE)
-  Yij.norm <- (Yij.vals - instmins) / (instmaxs - instmins)
-
-  # Update data frame of configuration performances
-  config.perf <- cbind(config.perf,
-                       perf = apply(X = Yij.norm,
-                                    MARGIN = 2,
-                                    FUN = summary.function,
-                                    na.rm = TRUE))
-
-  # Give each config its performance value
-  for (i in seq_along(config.list$A)){
-    config.list$A[[i]]$perf <- config.perf$perf[i]
-  }
-
-  # Return output
-  config.list$Yij.all     <- Yij.all
-  config.list$nruns       <- nruns
-  config.list$Yij.norm    <- Yij.norm
-  config.list$config.perf <- config.perf
   return(config.list)
 }

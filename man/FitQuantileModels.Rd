@@ -4,7 +4,7 @@
 \alias{FitQuantileModels}
 \title{Fit quantile regression models}
 \usage{
-FitQuantileModels(X, Nmodels, model.order)
+FitQuantileModels(X, Nmodels, model.order, weights)
 }
 \arguments{
 \item{X}{data frame containing the performance data}
@@ -13,6 +13,8 @@ FitQuantileModels(X, Nmodels, model.order)
 perturbations)}
 
 \item{model.order}{order to use for the regression model. Defaults to 2}
+
+\item{weights}{vector of observation weights returned by \code{\link[=GetWeights]{GetWeights()}}.}
 }
 \value{
 list containing information about all models fitted

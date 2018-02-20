@@ -3,6 +3,7 @@ rm(list = ls())
 require(smoof)
 require(ExpDE)
 require(devtools)
+require(doParallel)
 devtools::load_all()
 
 # ======================================================================
@@ -16,10 +17,13 @@ Ni <- 1
 elite.confs <- 5
 summary.function <- "median"
 model.order <- 2
-model.type <- "quantile"
+model.type <- "lasso"
 optimization.method = "Nelder-Mead"
 budget <- 200
 ndigits <- c(3, 4)
+seed <- 1234
+ncores <- 4
+
 
 # ======================================================================
 # List of tunable parameters
@@ -70,5 +74,21 @@ myalgo <- function(instance, params){
   return(out$Fbest)
 }
 
-
-
+#
+# out <- metatuner(parameters,
+#                  tuning.instances,
+#                  algo.runner,
+#                  elite.confs,
+#                  budget,
+#                  m0                  = m0,
+#                  mi                  = mi,
+#                  initial.sampling    = initial.sampling,
+#                  ndigits             = ndigits,
+#                  N0                  = N0,
+#                  Ni                  = Ni,
+#                  summary.function    = summary.function,
+#                  model.type          = model.type,
+#                  model.order         = model.order,
+#                  optimization.method = optimization.method,
+#                  ncores              = ncores,
+#                  seed                = seed)

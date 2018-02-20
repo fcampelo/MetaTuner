@@ -33,7 +33,7 @@ functions include \code{mean} and \code{median}, but in principle any summarizin
 function can be used.}
 
 \item{parameters}{data frame containing the parameter names and bound
-constraints}
+constraints.}
 }
 \value{
 Updated \code{config.list} containing performance evaluation of

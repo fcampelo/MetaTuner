@@ -56,6 +56,8 @@
 #' fit. Currently implemented alternatives are:
 #' - `linear` for linear regression using OLS.
 #' - `quantile` for quantile regression (uses package `quantreg`).
+#' - `lasso` for lasso regression (uses package `hqreg`)
+#' - `ridge` for ridge regression (uses package `hqreg`)
 #'
 #' In all cases `metatuner` fits a polynomial model to the performance data
 #' gathered from running the candidate configurations on the tuning instances.
@@ -76,6 +78,9 @@
 #'        *Tuning Instances* for details.
 #' @param algo.runner name of function used for evaluating the configurations.
 #'        See Section *Algorithm Runner* for details.
+#' @param elite.confs number of elite configurations to maintain at each
+#'        iteration.
+#' @param budget number of algorithm runs allocated for the tuning effort.
 #' @param m0 initial number of configurations to be generated. Defaults to
 #'        `3 * nrow(parameters)`.
 #' @param mi number of new configurations to generate at each iteration.
@@ -88,8 +93,6 @@
 #'        possible values during the tuning process).
 #'        Accepts a vector input, if different resolutions are desired for
 #'        different parameters. Defaults to `3`.
-#' @param elite.confs number of elite configurations to maintain at each
-#'        iteration.
 #' @param N0 initial number of instances to sample. Defaults to `5`.
 #' @param Ni number of new instances to add at each iteration. Defaults to `1`.
 #' @param summary.function name of function for aggregating the (scaled)
@@ -102,7 +105,9 @@
 #' @param optimization.method optimization method to use for estimating new
 #'        configurations. See Section *Optimization Methods* for details.
 #'        Defaults to "Nelder-Mead".
-#' @param budget number of algorithm runs allocated for the tuning effort.
+#' @param ncores number of processor cores to use. Receives either an integer or
+#'        the value "max", in which case the method uses all available cores,
+#'        minus one.
 #' @param seed seed for the random number generator. Use a scalar integer value.
 #'
 #' @export
@@ -110,23 +115,26 @@
 metatuner <- function(parameters,
                       tuning.instances,
                       algo.runner,
-                      m0                  = 3 * nrow(parameters),
-                      mi                  = 5,
-                      initial.sampling    = "lhs",
-                      ndigits             = 3,
                       elite.confs,
-                      N0                  = 5,
-                      Ni                  = 1,
+                      budget,
+                      m0                  = 3 * nrow(parameters),
+                      mi                  = 5L,
+                      initial.sampling    = "lhs",
+                      ndigits             = 3L,
+                      N0                  = 5L,
+                      Ni                  = 1L,
                       summary.function    = "median",
                       model.type          = "quantile",
-                      model.order         = 3,
+                      model.order         = 3L,
                       optimization.method = "Nelder-Mead",
-                      budget,
+                      ncores              = 1L,
                       seed = as.integer(Sys.time())){
 
   # =========== Input standardization
   initial.sampling <- match.arg(initial.sampling, c("lhs", "sobol"))
-  model.type       <- match.arg(model.type, c("linear", "quantile"))
+  model.type       <- match.arg(model.type,
+                                c("linear", "quantile", "lasso", "ridge"))
+  if (ncores == "max") ncores <- parallel::detectCores() - 1
 
   if(length(ndigits) == 1) {
     ndigits <- rep(ndigits, times = nrow(parameters))
@@ -142,6 +150,40 @@ metatuner <- function(parameters,
   names(config.list) <- c("A", "nruns")
   config.list$nruns  <- 0
 
+
+  # =========== Prepare parallel environment
+  if(ncores >= parallel::detectCores()) ncores <- parallel::detectCores() - 1
+  cat("\n Using", ncores, "cores for metatuner")
+
+  # Register parallel environment
+  cat("\n Preparing parallel environment for metatuner")
+  cl <- parallel::makeCluster(ncores, type = "PSOCK")
+  doParallel::registerDoParallel(cl)
+
+  # Export all user-defined functions to the clusters
+  # TODO: make this more efficient (export only objects that are really needed)
+  objectsused <- ls(.GlobalEnv)
+  if (!is.na(objectsused[1])){
+    for (i in 1:length(objectsused)){
+      namefunc <- objectsused[i]
+      parallel::clusterExport(cl, c(as.character(namefunc)))
+    }
+  }
+
+  # Export non-native R packages to the clusters
+  packsused <- .packages()
+  if (!is.na(packsused[1])) {
+    parallel::clusterExport(cl, "packsused", envir = environment())
+    .ignore <- parallel::clusterEvalQ(cl,
+                                      {
+                                        for (i in 1:length(packsused)) {
+                                          require(packsused[i],
+                                                  character.only = TRUE)
+                                        }
+                                      })
+  }
+
+
   # =========== Generate initial sample of configurations
   config.list$A <- GenerateInitialSample(m0       = m0,
                                          dim      = nrow(parameters),
@@ -152,8 +194,9 @@ metatuner <- function(parameters,
   Gamma.A <- SampleInstances(instance.list = tuning.instances,
                              N             = N0)
 
+
   # =========== Evaluate configurations in config.list on the sampled instances
-  cat("\nEvaluate initial configurations on initial sample of instances")
+  cat("\nEvaluating initial configurations on initial sample of instances")
   config.list <- EvaluateConfigurations(tuning.instances  = tuning.instances,
                                         instances.to.eval = Gamma.A,
                                         config.list       = config.list,
@@ -187,10 +230,12 @@ metatuner <- function(parameters,
                                           parameters        = parameters)
 
     # Build statistical models
-    models   <- FitModels(X           = config.list$config.perf,
-                          Nmodels     = mi,
-                          model.order = model.order,
-                          model.type  = model.type)
+    cat("\nFitting models at iteration", iteration.counter)
+    models <- FitModels(X           = config.list$config.perf,
+                        Nmodels     = mi,
+                        model.order = model.order,
+                        model.type  = model.type,
+                        Yij.norm    = config.list$Yij.norm)
 
     # Optimize models
     cat("\n-----")
@@ -226,6 +271,9 @@ metatuner <- function(parameters,
         ": ", config.list$nruns, "\n-----")
   }
 
+  # =========== Closing parallel environment
+  parallel::stopCluster(cl)
+
   # =========== Prepare return structures
   # Denormalize configurations
   allconfs <- config.list$config.perf[, -ncol(config.list$config.perf)]
@@ -249,6 +297,7 @@ metatuner <- function(parameters,
   config.list <- c(list(elite.confs = config.list$config.perf[elite.list, ]),
                    config.list,
                    metatuner.inputs = as.list(match.call()))
+
 
   # =========== Return output
   return(config.list)

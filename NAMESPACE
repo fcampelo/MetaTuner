@@ -2,3 +2,5 @@
 
 export(make_vectorized_smoof)
 export(metatuner)
+importFrom(foreach,"%:%")
+importFrom(foreach,"%dopar%")
