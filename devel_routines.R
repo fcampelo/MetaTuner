@@ -74,21 +74,21 @@ myalgo <- function(instance, params){
   return(out$Fbest)
 }
 
-#
-# out <- metatuner(parameters,
-#                  tuning.instances,
-#                  algo.runner,
-#                  elite.confs,
-#                  budget,
-#                  m0                  = m0,
-#                  mi                  = mi,
-#                  initial.sampling    = initial.sampling,
-#                  ndigits             = ndigits,
-#                  N0                  = N0,
-#                  Ni                  = Ni,
-#                  summary.function    = summary.function,
-#                  model.type          = model.type,
-#                  model.order         = model.order,
-#                  optimization.method = optimization.method,
-#                  ncores              = ncores,
-#                  seed                = seed)
+
+out <- metatuner(parameters,
+                 tuning.instances,
+                 algo.runner,
+                 elite.confs,
+                 budget,
+                 m0                  = m0,
+                 mi                  = mi,
+                 initial.sampling    = initial.sampling,
+                 ndigits             = ndigits,
+                 N0                  = N0,
+                 Ni                  = Ni,
+                 summary.function    = summary.function,
+                 model.type          = model.type,
+                 model.order         = model.order,
+                 optimization.method = optimization.method,
+                 ncores              = ncores,
+                 seed                = seed)

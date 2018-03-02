@@ -41,9 +41,9 @@ OptimizeModels <- function(parameters,
       y <- quantreg::predict.rq(object  = mymodel$model,
                                 newdata = newX)[1]
     } else if (modclass == "hqreg"){
-      y <- stats::predict(object = mymodel$model,
-                          X      = x,
-                          lambda = mymodel$model$lambda[2])[1]
+      y <- hqreg::predict.hqreg(object = mymodel$model,
+                                X      = x,
+                                lambda = mymodel$model$lambda[2])[1]
     } else stop("Model class", modclass,
                 "not recognized by function OptimizeModels")
 
