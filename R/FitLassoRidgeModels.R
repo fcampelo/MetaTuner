@@ -35,7 +35,7 @@ FitLassoRidgeModels <- function(X,
                                                              X$perf,
                                                              alpha = alpha)))
   mycoefs <- stats::coef(mymodel, mymodel$lambda.min)
-
+  
   # If lasso model generate all coefficients equal to zero
   if (all((mycoefs[-1] == 0)))
     stop("All coefficients are equal to zero when generating a Lasso/Ridge
@@ -60,7 +60,9 @@ FitLassoRidgeModels <- function(X,
     #                                      alpha = alpha,
     #                                      nlambda = 2,
     #                                      lambda = c(0, 0))
-    invisible(utils::capture.output(modelLOO <- hqreg::cv.hqreg(myformula[-i, ],
+    myformulaAux <- as.matrix(myformula[-i,])                 ##If it is necessary because if the matrix has only one colum, 
+    colnames(myformulaAux) <- colnames(myformula)             ##the data are coerced in a vector  when deleting a line
+    invisible(utils::capture.output(modelLOO <- hqreg::cv.hqreg(myformulaAux,
                                                                 X$perf[-i],
                                                                 alpha = alpha)))
     matcoefs[i, ] <- stats::coef(modelLOO, modelLOO$lambda.min)

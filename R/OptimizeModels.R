@@ -41,10 +41,23 @@ OptimizeModels <- function(parameters,
       y <- quantreg::predict.rq(object  = mymodel$model,
                                 newdata = newX)[1]
     } else if (modclass == "hqreg"){
-      y <- hqreg::predict.hqreg(object = mymodel$model,
-                                X      = x,
-                                lambda = mymodel$model$lambda[2])[1]
-    } else stop("Model class", modclass,
+      #y <- hqreg::predict.hqreg(object = mymodel$model,
+      #                          X      = x,
+      #                          lambda = mymodel$model$lambda[2])[1]
+      
+      coefs <- mymodel$model$beta[,2]
+      expcoefs <- names(coefs)
+      listexponents <- mapply(function(exps,pattern){stringi::stri_split_fixed(exps,pattern)},exps=expcoefs[2:length(expcoefs)], pattern=".")
+      Xaux <- rep(1,length(listexponents))
+      for(i in seq(listexponents))
+        for (j in 1:length(x)) Xaux[i] <- Xaux[i] * x[j]^as.numeric(listexponents[[i]][[j]])
+      
+      ###This last two lines I have to do since the function predict didn't work with an hqreg object when running it
+      ###in parallel (I have no clue why it happened)
+      y <- coefs[1]          ##Intercept
+      for(i in seq(listexponents)) y <- y + Xaux[i]*coefs[(i+1)]
+    }
+    else stop("Model class", modclass,
                 "not recognized by function OptimizeModels")
 
     return(sign(y) * min(1e32, abs(y))) # <-- prevents infinity
@@ -56,7 +69,7 @@ OptimizeModels <- function(parameters,
              ncol = nrow(parameters))
   Ui <- rbind(Ui, -Ui)
 
-  # ========== Optimize (minimize) models in a parallel environment
+  #========== Optimize (minimize) models in a parallel environment
   i <- NULL
   optparams <- foreach::foreach(i = models, .combine = 'rbind') %dopar% {
     theta <- stats::runif(nrow(parameters))
@@ -84,7 +97,7 @@ OptimizeModels <- function(parameters,
   #   # Initial point for optimization (random, feasible)
   #   theta <- runif(nrow(parameters))
   #   # cat("\n", theta)
-  #
+  # 
   #   Y <- stats::constrOptim(theta      = theta,
   #                           f          = myobjfun,
   #                           grad       = NULL,
@@ -96,8 +109,8 @@ OptimizeModels <- function(parameters,
   #   mysample[i, ] <- Y$par
   #   cat(".")
   # }
-  #
-  #
+  # 
+  # 
   # for (j in 1:ncol(mysample)){
   #   mysample[, j] <- round(mysample[, j], digits = ndigits[j])
   # }

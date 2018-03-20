@@ -17,7 +17,7 @@ Ni <- 1
 elite.confs <- 5
 summary.function <- "median"
 model.order <- 2
-model.type <- "lasso"
+model.type <- "ridge"
 optimization.method = "Nelder-Mead"
 budget <- 200
 ndigits <- c(3, 4)
@@ -74,7 +74,6 @@ myalgo <- function(instance, params){
   return(out$Fbest)
 }
 
-
 out <- metatuner(parameters,
                  tuning.instances,
                  algo.runner,
@@ -92,3 +91,4 @@ out <- metatuner(parameters,
                  optimization.method = optimization.method,
                  ncores              = ncores,
                  seed                = seed)
+
