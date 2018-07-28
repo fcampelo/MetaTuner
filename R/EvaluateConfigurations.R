@@ -113,10 +113,11 @@ EvaluateConfigurations <- function(tuning.instances,
     # Store result from matperfs in config.list and Yij.all matrix
     for(i in 1:ncol(matperfs)) {
       for(j in 1:nrow(matperfs)){
+        newrow <- data.frame(instance.ID = instances.to.eval[inst[j]],
+                             y           = matperfs[j, i])
+        names(newrow) <- names(config.list$A[[configs.to.eval[i]]]$Yij)
         config.list$A[[configs.to.eval[i]]]$Yij <-
-          rbind(config.list$A[[configs.to.eval[i]]]$Yij,
-                data.frame(instance.ID = instances.to.eval[inst[j]],
-                           y           = matperfs[j, i]))
+          rbind(config.list$A[[configs.to.eval[i]]]$Yij, newrow)
         Yij.all[instances.to.eval[inst[j]], configs.to.eval[i]] <- matperfs[j,i]
       }
       rownames(config.list$A[[configs.to.eval[i]]]$Yij) <-
