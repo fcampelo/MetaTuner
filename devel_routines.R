@@ -16,7 +16,7 @@ mi <- 3
 Ni <- 1
 elite.confs <- 5
 summary.function <- "median"
-model.order <- 2
+model.order <- 3
 model.type <- "ridge"
 optimization.method = "Nelder-Mead"
 budget <- 200
@@ -39,6 +39,7 @@ allfuns <- expand.grid(fname, dims, stringsAsFactors = FALSE)
 
 # Assemble instances list
 tuning.instances <- vector(nrow(allfuns), mode = "list")
+
 for (i in 1:length(tuning.instances)){
   tuning.instances[[i]]$FUN   <- paste0(allfuns[i,1], "_", allfuns[i,2])
   tuning.instances[[i]]$alias <- paste0(allfuns[i,1], " (", allfuns[i,2], ")")

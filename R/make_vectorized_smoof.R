@@ -34,16 +34,27 @@ make_vectorized_smoof <- function(prob.name, ...){
                                              ns = "smoof"),
                      args = my.args)
     myfun2 <- function(X, ...){
-      if(is.matrix(X)){
-        as.vector(apply(X,
-                        MARGIN = 1,
-                        FUN = myfun))
-      } else{
-        myfun(X)
+      m <- attr(myfun, "n.objectives")
+      if (m == 1){
+        if(is.matrix(X)){
+          Y <- as.vector(apply(X,
+                               MARGIN = 1,
+                               FUN = myfun))
+        } else{
+          Y <- myfun(X)
+        }
+      } else {
+        if(is.matrix(X)){
+          y <- t(apply(X,
+                       MARGIN = 1,
+                       FUN = myfun))
+        } else{
+          y <- myfun(X)
+        }
+        Y <- matrix(y, ncol = m, byrow = FALSE)
       }
+      return(Y)
     }
-
-    return(myfun2)
   }
 }
 
