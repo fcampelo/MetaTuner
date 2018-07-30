@@ -10,16 +10,16 @@ devtools::load_all()
 # Simple input parameters
 initial.sampling <- "lhs"
 algo.runner <- "myalgo"
-m0 <- 10
+m0 <- 50
 N0 <- 5
-mi <- 3
+mi <- 10
 Ni <- 1
-elite.confs <- 5
+elite.confs <- 10
 summary.function <- "median"
 model.order <- 3
 model.type <- "ridge"
 optimization.method = "Nelder-Mead"
-budget <- 200
+budget <- 1000
 ndigits <- 3
 seed <- 1234
 ncores <- 7
