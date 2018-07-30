@@ -47,6 +47,7 @@ EvaluateConfigurations <- function(tuning.instances,
   ## Error checking done in the calling routine
   ## ==============
 
+  # Define instances and configurations that must be evaluated
   if(identical(configs.to.eval, "all")) {
     configs.to.eval <- seq_along(config.list$A)
   }
@@ -76,7 +77,9 @@ EvaluateConfigurations <- function(tuning.instances,
   colnames(Yij.all) <- paste0("config", seq_along(config.list$A))
   rownames(Yij.all) <- paste0("instance", seq_along(tuning.instances))
 
-  # Data frame of configuration performances (with normalized parameters)
+
+  # Data frame of normalized configurations (will receive performances later as
+  # a last column)
   config.perf <-
     as.data.frame(t(sapply(config.list$A,
                            function(x, params){x$config},
@@ -86,16 +89,18 @@ EvaluateConfigurations <- function(tuning.instances,
 
   # ========== Evaluate config/instance pairs that need to be evaluated
 
-  # Define instance indices to be used by configurations to be evaluated
+  # Define instance indices that still need to be evaluated (ignoring instances
+  # already visited)
   instances.seen <- config.list$A[[configs.to.eval[1]]]$Yij$instance.ID
   inst <- which(!(instances.to.eval) %in% instances.seen)
 
-  # Define set of instances to be visited
+  # Get subset of instance descriptions for evaluation
   inst.to.eval.parallel <- tuning.instances[instances.to.eval[inst]]
 
+  # If there is something to do:
   if (length(inst.to.eval.parallel) > 0){
 
-    # Define set of configs to evaluate
+    # Get subset of config descriptions for evaluation
     confs.to.eval.parallel <- config.list$A[configs.to.eval]
 
     # Denormalize configurations to be used
@@ -104,34 +109,38 @@ EvaluateConfigurations <- function(tuning.instances,
         confs.to.eval.parallel[[i]]$config * (parameters$maxx - parameters$minx)
     }
 
-    # ========== Parallel evaluation
-    matperfs <- foreach::foreach(i = inst.to.eval.parallel, .combine='rbind') %:%
+    # ========== Parallel evaluation of configs on instances
+    matperfs <- foreach::foreach(i = inst.to.eval.parallel, .combine='cbind') %:%
       foreach::foreach(c = confs.to.eval.parallel, .combine='c') %dopar% {
         do.call(algo.runner, list(instance = i, params = c))
       }
-    matperfs <- as.matrix(matperfs)
-    if(ncol(matperfs) == 1) matperfs <- t(matperfs)
+    matperfs <- t(as.matrix(matperfs))
 
     # Store result from matperfs in config.list and Yij.all matrix
-    for(i in 1:ncol(matperfs)) {
-      for(j in 1:nrow(matperfs)){
-        newrow <- data.frame(instance.ID = instances.to.eval[inst[j]],
-                             y           = matperfs[j, i])
-        names(newrow) <- names(config.list$A[[configs.to.eval[i]]]$Yij)
+    for(i in 1:nrow(matperfs)) { # for each instance evaluated above
+      for(j in 1:ncol(matperfs)){ # for each config evaluated above
 
-        saveRDS(object = list(config.list, configs.to.eval, i),
-                file = "../tmprun.rds")
+        # prepare new row for the Yij matrix of config "configs.to.eval[j]"
+        newrow       <- data.frame(instance.ID = instances.to.eval[inst[i]],
+                                   y           = matperfs[i, j][[1]])
 
-        config.list$A[[configs.to.eval[i]]]$Yij <-
-          rbind(config.list$A[[configs.to.eval[i]]]$Yij, newrow)
-        Yij.all[instances.to.eval[inst[j]],
-                configs.to.eval[i]] <- matperfs[j, i][[1]]
+        # bind new row to the Yij matrix of config "configs.to.eval[j]"
+        config.list$A[[configs.to.eval[j]]]$Yij <-
+          rbind(config.list$A[[configs.to.eval[j]]]$Yij, newrow)
+
+        # record performance of configs.to.eval[j] on
+        # instance "instances.to.eval[inst[i]]"
+        Yij.all[instances.to.eval[inst[i]],
+                configs.to.eval[j]] <- matperfs[i, j][[1]]
       }
-      rownames(config.list$A[[configs.to.eval[i]]]$Yij) <-
-        seq(1:nrow(config.list$A[[configs.to.eval[i]]]$Yij))
+
+      # Update rownames of Yij matrix of config "configs.to.eval[j]"
+      rownames(config.list$A[[configs.to.eval[j]]]$Yij) <-
+        seq(1:nrow(config.list$A[[configs.to.eval[j]]]$Yij))
     }
 
-    nruns <- nruns + (ncol(matperfs) * nrow(matperfs))
+    # Update run counter
+    nruns <- nruns + length(matperfs)
 
     # Calculate normalized performances
     Yij.vals <- Yij.all[which(rowSums(!is.na(Yij.all)) != 0), ]
@@ -163,5 +172,6 @@ EvaluateConfigurations <- function(tuning.instances,
     config.list$Yij.norm    <- Yij.norm
     config.list$config.perf <- config.perf
   }
+
   return(config.list)
 }
