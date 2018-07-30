@@ -109,6 +109,8 @@ EvaluateConfigurations <- function(tuning.instances,
       foreach::foreach(c = confs.to.eval.parallel, .combine='c') %dopar% {
         do.call(algo.runner, list(instance = i, params = c))
       }
+    matperfs <- as.matrix(matperfs)
+    if(ncol(matperfs) == 1) matperfs <- t(matperfs)
 
     # Store result from matperfs in config.list and Yij.all matrix
     for(i in 1:ncol(matperfs)) {
