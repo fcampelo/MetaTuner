@@ -90,7 +90,7 @@ EvaluateConfigurations <- function(tuning.instances,
   instances.seen <- config.list$A[[configs.to.eval[1]]]$Yij$instance.ID
   inst <- which(!(instances.to.eval) %in% instances.seen)
 
-  # Define set of instances to be used visited
+  # Define set of instances to be visited
   inst.to.eval.parallel <- tuning.instances[instances.to.eval[inst]]
 
   if (length(inst.to.eval.parallel) > 0){
@@ -106,7 +106,7 @@ EvaluateConfigurations <- function(tuning.instances,
 
     # ========== Parallel evaluation
     matperfs <- foreach::foreach(i = inst.to.eval.parallel, .combine='rbind') %:%
-      foreach::foreach(c = confs.to.eval.parallel, .combine='cbind') %dopar% {
+      foreach::foreach(c = confs.to.eval.parallel, .combine='c') %dopar% {
         do.call(algo.runner, list(instance = i, params = c))
       }
 
@@ -118,7 +118,8 @@ EvaluateConfigurations <- function(tuning.instances,
         names(newrow) <- names(config.list$A[[configs.to.eval[i]]]$Yij)
         config.list$A[[configs.to.eval[i]]]$Yij <-
           rbind(config.list$A[[configs.to.eval[i]]]$Yij, newrow)
-        Yij.all[instances.to.eval[inst[j]], configs.to.eval[i]] <- matperfs[j,i]
+        Yij.all[instances.to.eval[inst[j]],
+                configs.to.eval[i]] <- matperfs[j, i][[1]]
       }
       rownames(config.list$A[[configs.to.eval[i]]]$Yij) <-
         seq(1:nrow(config.list$A[[configs.to.eval[i]]]$Yij))
