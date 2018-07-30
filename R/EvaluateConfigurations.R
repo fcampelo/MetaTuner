@@ -118,6 +118,10 @@ EvaluateConfigurations <- function(tuning.instances,
         newrow <- data.frame(instance.ID = instances.to.eval[inst[j]],
                              y           = matperfs[j, i])
         names(newrow) <- names(config.list$A[[configs.to.eval[i]]]$Yij)
+
+        saveRDS(object = list(config.list, configs.to.eval, i),
+                file = "../tmprun.rds")
+
         config.list$A[[configs.to.eval[i]]]$Yij <-
           rbind(config.list$A[[configs.to.eval[i]]]$Yij, newrow)
         Yij.all[instances.to.eval[inst[j]],

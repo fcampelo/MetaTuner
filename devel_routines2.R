@@ -20,7 +20,7 @@ model.order <- 3
 model.type <- "ridge"
 optimization.method = "Nelder-Mead"
 budget <- 200
-ndigits <- 4
+ndigits <- 3
 seed <- 1234
 ncores <- 7
 
