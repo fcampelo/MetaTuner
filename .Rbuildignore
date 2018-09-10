@@ -1,5 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-devel_routines.R
-devel_routines2.R
 data/
+^.*\.yml$
+^cran-comments.md$
