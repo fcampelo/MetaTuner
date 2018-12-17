@@ -134,7 +134,14 @@ metatuner <- function(parameters,
   initial.sampling <- match.arg(initial.sampling, c("lhs", "sobol"))
   model.type       <- match.arg(model.type,
                                 c("linear", "quantile", "lasso", "ridge"))
-  if (ncores == "max") ncores <- parallel::detectCores() - 1
+
+  available.cores <- parallel::detectCores()
+  if (ncores == "max") ncores <- available.cores - 1
+  if (ncores >= available.cores){
+    ncores <- available.cores - 1
+  }
+  cat("This machine has", available.cores, "cores. \nUsing",
+      ncores, "cores for MetaTuner")
 
   if(length(ndigits) == 1) {
     ndigits <- rep(ndigits, times = nrow(parameters))
@@ -150,13 +157,8 @@ metatuner <- function(parameters,
   names(config.list) <- c("A", "nruns")
   config.list$nruns  <- 0
 
-
-  # =========== Prepare parallel environment
-  if(ncores >= parallel::detectCores()) ncores <- parallel::detectCores() - 1
-  cat("\n Using", ncores, "cores for metatuner")
-
   # Register parallel environment
-  cat("\n Preparing parallel environment for metatuner")
+  cat("\nPreparing parallel environment for MetaTuner")
   cl <- parallel::makeCluster(ncores, type = "PSOCK")
   doParallel::registerDoParallel(cl)
 

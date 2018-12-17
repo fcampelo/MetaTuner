@@ -2,8 +2,8 @@ Package:  MetaTuner
 Type:     Package
 Title:    MetaTuner: Metaheuristics Tuner
 Description: Functions for tuning algorithm parameters by sequential optimization of robust models.
-Date:     2017-02-31
-Version:  0.1.0.9300
+Date:     2018-12-17
+Version:  0.1.1.9000
 Depends:  R (>= 3.5.0)
 Imports:  stats,
           hqreg,
